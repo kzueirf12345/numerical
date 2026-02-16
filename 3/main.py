@@ -18,7 +18,7 @@ X[:, 0] = X0
 for i in range(1, N):
     X[:, i] = X[:, i-1] + theta * (mu - X[:, i-1]) * dt + sigma * dW[:, i-1]
 
-plt.figure(figsize=(20, 16))
+plt.figure(figsize=(16, 16))
 for i in range(n_paths):
     plt.plot(t, X[i], alpha=0.1, color='blue', linewidth=0.5)
 
