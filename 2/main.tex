@@ -1,0 +1,72 @@
+\documentclass[12pt]{article}
+\usepackage[T2A]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[russian]{babel}
+\usepackage{amsmath, amssymb}
+\usepackage{geometry}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{multirow}
+\usepackage{siunitx}
+\usepackage{graphicx}
+\usepackage{caption}
+\usepackage{setspace}
+
+\geometry{a4paper, left=25mm, right=15mm, top=20mm, bottom=20mm}
+\onehalfspacing
+\frenchspacing
+
+\title{Бенчмаркинг для системы моделирования кристаллических решёток}
+\author{Попов Владимир, Б01-411}
+\date{}
+
+\begin{document}
+
+\maketitle
+
+\section{Классы нагрузок и подходящие бенчмарки}
+
+В представленном ранее проекте требуется определить, какое оборудование установить на сервере и на лабораторных машинах. Это можно решить, изучив соответствующие бенчмарки.
+
+\begin{table}[h]
+\centering
+\caption{План бенчмаркинга инфраструктуры}
+\label{tab:plan}
+\begin{tabular}{p{0.25\textwidth}p{0.35\textwidth}p{0.35\textwidth}}
+\toprule
+\textbf{Компонент} & \textbf{Бенчмарк} & \textbf{Цель} \\
+\midrule
+    CPU (Вычисления) & 
+    SPECrate Floating Point Base & 
+    Оценка многопоточной производительности для вычислений с плавающей точкой.  \\
+\midrule
+    GPU (Визуализация) & 
+    SPECviewperf & 
+    Гарантирует, что выбранные GPU справятся с рендерингом в PyQt5+OpenGL миллионов атомов без задержек \\
+\midrule
+    Storage & 
+    FIO, STREAM & 
+    Оценка скорости ввода/вывода локальных конфигураций на лабораторном железе. Оценка пропускной способности памяти и работы БД, так как данные будут подгружаться с удалённого сервера. \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Решение проблем бенчмаркинга}
+
+Синтетические тесты могут не отражать реальную нагрузку молекулярной динамики, которая зависит от кэш-памяти при построении списков соседей и имеет специфический паттерн доступа к памяти.
+
+SPECrate FP Включает реальные научные приложения, в том числе задачи вычислительной химии и физики, и SPECviewperf включает тесты визуализации научных данных.\
+
+STREAM использует массивы размером более чем в 4 раза превышающие размер кэша последнего уровня, что соотносится с нашим случаем, ведь подгружать данные хочется максимально большими блоками, и параллелизация будет происходить на кубы непомещающиеся в кэш. При этом STREAM использует последовательный доступ к памяти, что соответствует обходу атомов в суперячейке, а в FIO можно протестировать случайный доступ, что соответствует выборке конфигураций из БД.
+
+
+В итоге 
+\begin{itemize}
+    \item \textbf{SPECrate}: CPU, компилятор, библиотеки, ОС
+    \item \textbf{SPECviewperf}: GPU, драйверы OpenGL, оконная система
+    \item \textbf{FIO}: дисковая подсистема, СУБД, файловая система
+    \item \textbf{STREAM}: CPU, контроллер памяти
+\end{itemize}
+
+
+\end{document}
