@@ -2,10 +2,12 @@
 #include <cmath>
 #include <cstdlib>
 #include <exception>
+#include <fstream>
 #include <iomanip>
 #include <random>
 #include <concepts>
 #include <iostream>
+#include <stdexcept>
 
 template <std::floating_point T>
 struct Parametrs {
@@ -33,13 +35,29 @@ static Parametrs<T> StddevFast(std::mt19937& gen, T real_mean, T real_stddev, si
 }
 
 
-int main() try {
+int main(int argc, char* argv[]) try {
+    std::ostream* output_ptr = &std::cout;
+    std::ofstream output_file{};
+    
+    if (argc == 2) {
+        output_file.open(argv[1]);
+        if (!output_file.is_open()) {
+            throw std::invalid_argument("Can't open output file");
+        }
+        output_ptr = &output_file;
+    } 
+    else if (argc > 2) {
+        throw std::invalid_argument("Too many command line args");
+    }
+
+    std::ostream& output = *output_ptr;
+
     std::random_device rd;
     std::mt19937 gen(rd());
 
     constexpr size_t test_iter_cnt = 100;
 
-    std::cerr << "===Float32===\n";
+    output << "===Float32===\n";
 
     constexpr size_t parametrs_cnt = 3;
 
@@ -49,28 +67,28 @@ int main() try {
         Parametrs<float>{100.f, 0.01f}
     };
 
-    std::cout << "---Fast Method---\n";
+    output << "---Fast Method---\n";
 
     for (size_t parametrs_num = 0; parametrs_num < parametrs_cnt; ++parametrs_num) {
         const Parametrs<float> real_params = parametrs_arr[parametrs_num];
         const float real_mean = real_params.mean;
         const float real_stddev = real_params.stddev;
 
-        std::cout << "real_mean = " << real_mean << ";\t\treal_stddev = " << real_stddev << ";\n";
+        output << "real_mean = " << real_mean << "; real_stddev = " << real_stddev << ";\n";
 
         for (size_t test_num = 0; test_num < test_iter_cnt; ++test_num) {
             const Parametrs<float> params = StddevFast(gen, real_mean, real_stddev);
             const float mean = params.mean;
             const float stddev = params.stddev;
 
-            std::cout << std::fixed << std::left 
+            output << std::fixed << std::left 
                 << "Test "      << std::setw(4)     << test_num
                 << "mean = "    << std::setw(15)    << mean
                 << "stddev = "  << std::setw(30)    << stddev   
             << "\n";
         }
 
-        std::cout << '\n';
+        output << '\n';
     }
 
 
