@@ -62,6 +62,22 @@ static Parametrs<T> Disp2Pass(std::mt19937& gen, T real_mean, T real_stddev, siz
     return {mean, disp};
 }
 
+template <std::floating_point T>
+static Parametrs<T> Disp1Pass(std::mt19937& gen, T real_mean, T real_stddev, size_t selection_cnt = 1000) {
+    std::normal_distribution<T> distrib(real_mean, real_stddev);
+
+    T x = distrib(gen);
+    T mean = x; 
+    T disp = 0;
+    for (size_t x_ind = 1; x_ind < selection_cnt; ++x_ind) {
+        x = distrib(gen);
+        const T old_mean = mean;
+        mean += (x - mean) / static_cast<T>(x_ind + 1ull);
+        disp += ((x - old_mean) * (x - mean) - disp) / static_cast<T>(x_ind + 1ull);
+    }
+    return {mean, disp};
+}
+
 
 int main(int argc, char* argv[]) try {
     std::ostream* output_ptr = &std::cout;
@@ -85,62 +101,174 @@ int main(int argc, char* argv[]) try {
 
     constexpr size_t test_iter_cnt = 100;
 
-    output << "===Float32===\n";
-
     constexpr size_t parametrs_cnt = 3;
 
-    constexpr std::array<Parametrs<float>, parametrs_cnt> parametrs_arr = {
-        Parametrs<float>{1.f, 1.f}, 
-        Parametrs<float>{10.f, 0.1f}, 
-        Parametrs<float>{100.f, 0.01f}
-    };
+    {
 
-    output << "---Fast Method---\n";
+        output << "===Float32===\n";
 
-    for (size_t parametrs_num = 0; parametrs_num < parametrs_cnt; ++parametrs_num) {
-        const Parametrs<float> real_params = parametrs_arr[parametrs_num];
-        const float real_mean = real_params.mean;
-        const float real_stddev = real_params.stddev_or_disp;
+        constexpr std::array<Parametrs<float>, parametrs_cnt> parametrs_arr = {
+            Parametrs<float>{1.f, 1.f}, 
+            Parametrs<float>{10.f, 0.1f}, 
+            Parametrs<float>{100.f, 0.01f}
+        };
 
-        output << "real_mean = " << real_mean << "; real_disp = " << real_stddev * real_stddev << ";\n";
+        output << "---Fast Method---\n";
 
-        for (size_t test_num = 0; test_num < test_iter_cnt; ++test_num) {
-            const Parametrs<float> params = DispFast(gen, real_mean, real_stddev);
-            const float mean = params.mean;
-            const float disp = params.stddev_or_disp;
+        for (size_t parametrs_num = 0; parametrs_num < parametrs_cnt; ++parametrs_num) {
+            const Parametrs<float> real_params = parametrs_arr[parametrs_num];
+            const float real_mean = real_params.mean;
+            const float real_stddev = real_params.stddev_or_disp;
 
-            output << std::fixed << std::left 
-                << "Test "      << std::setw(4)     << test_num
-                << "mean = "    << std::setw(15)    << mean
-                << "disp = "    << std::setw(30)    << disp   
-            << "\n";
+            output << "real_mean = " << real_mean << "; real_disp = " << real_stddev * real_stddev << ";\n";
+
+            for (size_t test_num = 0; test_num < test_iter_cnt; ++test_num) {
+                const Parametrs<float> params = DispFast(gen, real_mean, real_stddev);
+                const float mean = params.mean;
+                const float disp = params.stddev_or_disp;
+
+                output << std::fixed << std::left 
+                    << "Test "      << std::setw(4)     << test_num
+                    << "mean = "    << std::setw(15)    << mean
+                    << "disp = "    << std::setw(30)    << disp   
+                << "\n";
+            }
+
+            output << '\n';
         }
 
-        output << '\n';
+        output << "---2 Pass Method---\n";
+
+        for (size_t parametrs_num = 0; parametrs_num < parametrs_cnt; ++parametrs_num) {
+            const Parametrs<float> real_params = parametrs_arr[parametrs_num];
+            const float real_mean = real_params.mean;
+            const float real_stddev = real_params.stddev_or_disp;
+
+            output << "real_mean = " << real_mean << "; real_disp = " << real_stddev * real_stddev << ";\n";
+
+            for (size_t test_num = 0; test_num < test_iter_cnt; ++test_num) {
+                const Parametrs<float> params = Disp2Pass(gen, real_mean, real_stddev);
+                const float mean = params.mean;
+                const float disp = params.stddev_or_disp;
+
+                output << std::fixed << std::left 
+                    << "Test "      << std::setw(4)     << test_num
+                    << "mean = "    << std::setw(15)    << mean
+                    << "disp = "    << std::setw(30)    << disp   
+                << "\n";
+            }
+
+            output << '\n';
+        }
+
+        output << "---1 Pass Method---\n";
+
+        for (size_t parametrs_num = 0; parametrs_num < parametrs_cnt; ++parametrs_num) {
+            const Parametrs<float> real_params = parametrs_arr[parametrs_num];
+            const float real_mean = real_params.mean;
+            const float real_stddev = real_params.stddev_or_disp;
+
+            output << "real_mean = " << real_mean << "; real_disp = " << real_stddev * real_stddev << ";\n";
+
+            for (size_t test_num = 0; test_num < test_iter_cnt; ++test_num) {
+                const Parametrs<float> params = Disp1Pass(gen, real_mean, real_stddev);
+                const float mean = params.mean;
+                const float disp = params.stddev_or_disp;
+
+                output << std::fixed << std::left 
+                    << "Test "      << std::setw(4)     << test_num
+                    << "mean = "    << std::setw(15)    << mean
+                    << "disp = "    << std::setw(30)    << disp   
+                << "\n";
+            }
+
+            output << '\n';
+        }
+
     }
 
-    output << "---2 Pass Method---\n";
+    {
 
-    for (size_t parametrs_num = 0; parametrs_num < parametrs_cnt; ++parametrs_num) {
-        const Parametrs<float> real_params = parametrs_arr[parametrs_num];
-        const float real_mean = real_params.mean;
-        const float real_stddev = real_params.stddev_or_disp;
+        output << "===Float64===\n";
 
-        output << "real_mean = " << real_mean << "; real_disp = " << real_stddev * real_stddev << ";\n";
+        constexpr std::array<Parametrs<double>, parametrs_cnt> parametrs_arr = {
+            Parametrs<double>{1.f, 1.f}, 
+            Parametrs<double>{10.f, 0.1f}, 
+            Parametrs<double>{100.f, 0.01f}
+        };
 
-        for (size_t test_num = 0; test_num < test_iter_cnt; ++test_num) {
-            const Parametrs<float> params = Disp2Pass(gen, real_mean, real_stddev);
-            const float mean = params.mean;
-            const float disp = params.stddev_or_disp;
+        output << "---Fast Method---\n";
 
-            output << std::fixed << std::left 
-                << "Test "      << std::setw(4)     << test_num
-                << "mean = "    << std::setw(15)    << mean
-                << "disp = "    << std::setw(30)    << disp   
-            << "\n";
+        for (size_t parametrs_num = 0; parametrs_num < parametrs_cnt; ++parametrs_num) {
+            const Parametrs<double> real_params = parametrs_arr[parametrs_num];
+            const double real_mean = real_params.mean;
+            const double real_stddev = real_params.stddev_or_disp;
+
+            output << "real_mean = " << real_mean << "; real_disp = " << real_stddev * real_stddev << ";\n";
+
+            for (size_t test_num = 0; test_num < test_iter_cnt; ++test_num) {
+                const Parametrs<double> params = DispFast(gen, real_mean, real_stddev);
+                const double mean = params.mean;
+                const double disp = params.stddev_or_disp;
+
+                output << std::fixed << std::left 
+                    << "Test "      << std::setw(4)     << test_num
+                    << "mean = "    << std::setw(15)    << mean
+                    << "disp = "    << std::setw(30)    << disp   
+                << "\n";
+            }
+
+            output << '\n';
         }
 
-        output << '\n';
+        output << "---2 Pass Method---\n";
+
+        for (size_t parametrs_num = 0; parametrs_num < parametrs_cnt; ++parametrs_num) {
+            const Parametrs<double> real_params = parametrs_arr[parametrs_num];
+            const double real_mean = real_params.mean;
+            const double real_stddev = real_params.stddev_or_disp;
+
+            output << "real_mean = " << real_mean << "; real_disp = " << real_stddev * real_stddev << ";\n";
+
+            for (size_t test_num = 0; test_num < test_iter_cnt; ++test_num) {
+                const Parametrs<double> params = Disp2Pass(gen, real_mean, real_stddev);
+                const double mean = params.mean;
+                const double disp = params.stddev_or_disp;
+
+                output << std::fixed << std::left 
+                    << "Test "      << std::setw(4)     << test_num
+                    << "mean = "    << std::setw(15)    << mean
+                    << "disp = "    << std::setw(30)    << disp   
+                << "\n";
+            }
+
+            output << '\n';
+        }
+
+        output << "---1 Pass Method---\n";
+
+        for (size_t parametrs_num = 0; parametrs_num < parametrs_cnt; ++parametrs_num) {
+            const Parametrs<double> real_params = parametrs_arr[parametrs_num];
+            const double real_mean = real_params.mean;
+            const double real_stddev = real_params.stddev_or_disp;
+
+            output << "real_mean = " << real_mean << "; real_disp = " << real_stddev * real_stddev << ";\n";
+
+            for (size_t test_num = 0; test_num < test_iter_cnt; ++test_num) {
+                const Parametrs<double> params = Disp1Pass(gen, real_mean, real_stddev);
+                const double mean = params.mean;
+                const double disp = params.stddev_or_disp;
+
+                output << std::fixed << std::left 
+                    << "Test "      << std::setw(4)     << test_num
+                    << "mean = "    << std::setw(15)    << mean
+                    << "disp = "    << std::setw(30)    << disp   
+                << "\n";
+            }
+
+            output << '\n';
+        }
+
     }
 
 
