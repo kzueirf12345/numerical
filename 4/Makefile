@@ -25,7 +25,7 @@ FLAGS =	-Wall -Wextra -Waggressive-loop-optimizations \
 		-Wno-missing-field-initializers -Wno-narrowing -Wno-varargs \
 		-Wstack-protector -fcheck-new -fstack-protector -fstrict-overflow \
 		-flto-odr-type-merging -fno-omit-frame-pointer -pie \
-		-fPIE -Werror=vla -Wpedantic \
+		-fPIE -Werror=vla -Wpedantic -std=c++20\
 
 SANITIZER = -fsanitize=address,alignment,bool,bounds,enum,float-cast-overflow,float-divide-by-zero,$\
 		integer-divide-by-zero,leak,nonnull-attribute,null,object-size,return,returns-nonnull-attribute,$\
