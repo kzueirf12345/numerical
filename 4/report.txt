@@ -1,0 +1,91 @@
+seed: 1827965624
+===FLOAT32===
+real_mean = 1
+real_disp = 1
+                       ---Fast Method---                          ---2 Pass Method---                         ---1 Pass Method---             
+Test 0    |mean = 1.005864       |disp = 1.023777       |mean = 1.005864       |disp = 1.023777       |mean = 1.005584       |disp = 1.024724       |
+Test 1    |mean = 1.026480       |disp = 0.990192       |mean = 1.026480       |disp = 0.990193       |mean = 1.025609       |disp = 0.990427       |
+Test 2    |mean = 1.013221       |disp = 1.069531       |mean = 1.013221       |disp = 1.069531       |mean = 1.013818       |disp = 1.070245       |
+Test 3    |mean = 1.068007       |disp = 1.058487       |mean = 1.068007       |disp = 1.058486       |mean = 1.068814       |disp = 1.058893       |
+Test 4    |mean = 0.998104       |disp = 0.952896       |mean = 0.998104       |disp = 0.952896       |mean = 0.996557       |disp = 0.951456       |
+Test 5    |mean = 1.048408       |disp = 0.939335       |mean = 1.048408       |disp = 0.939334       |mean = 1.046527       |disp = 0.936734       |
+Test 6    |mean = 0.945623       |disp = 0.910019       |mean = 0.945623       |disp = 0.910018       |mean = 0.946974       |disp = 0.909102       |
+Test 7    |mean = 0.974745       |disp = 1.026040       |mean = 0.974745       |disp = 1.026040       |mean = 0.974799       |disp = 1.027064       |
+Test 8    |mean = 0.980856       |disp = 1.030908       |mean = 0.980856       |disp = 1.030905       |mean = 0.979778       |disp = 1.030774       |
+Test 9    |mean = 1.033288       |disp = 0.880942       |mean = 1.033288       |disp = 0.880942       |mean = 1.033229       |disp = 0.881820       |
+
+===FLOAT32===
+real_mean = 10.000000
+real_disp = 0.010000
+                       ---Fast Method---                          ---2 Pass Method---                         ---1 Pass Method---             
+Test 0    |mean = 10.006951      |disp = 0.010864       |mean = 10.006951      |disp = 0.010767       |mean = 10.006995      |disp = 0.010776       |
+Test 1    |mean = 9.993805       |disp = 0.009468       |mean = 9.993805       |disp = 0.009612       |mean = 9.993949       |disp = 0.009600       |
+Test 2    |mean = 10.001043      |disp = 0.009605       |mean = 10.001043      |disp = 0.009526       |mean = 10.000836      |disp = 0.009494       |
+Test 3    |mean = 10.000340      |disp = 0.010216       |mean = 10.000340      |disp = 0.010254       |mean = 10.000547      |disp = 0.010219       |
+Test 4    |mean = 10.000410      |disp = 0.009987       |mean = 10.000410      |disp = 0.010110       |mean = 10.000599      |disp = 0.010085       |
+Test 5    |mean = 10.001153      |disp = 0.009453       |mean = 10.001153      |disp = 0.009245       |mean = 10.001028      |disp = 0.009237       |
+Test 6    |mean = 10.002424      |disp = 0.010597       |mean = 10.002424      |disp = 0.010714       |mean = 10.002389      |disp = 0.010724       |
+Test 7    |mean = 10.005291      |disp = 0.010643       |mean = 10.005291      |disp = 0.010718       |mean = 10.005193      |disp = 0.010720       |
+Test 8    |mean = 9.994558       |disp = 0.010254       |mean = 9.994558       |disp = 0.010235       |mean = 9.994662       |disp = 0.010235       |
+Test 9    |mean = 9.995184       |disp = 0.009735       |mean = 9.995184       |disp = 0.009903       |mean = 9.995125       |disp = 0.009910       |
+
+===FLOAT32===
+real_mean = 100.000000
+real_disp = 0.000100
+                       ---Fast Method---                          ---2 Pass Method---                         ---1 Pass Method---             
+Test 0    |mean = 100.000008     |disp = -0.001953      |mean = 100.000008     |disp = 0.000096       |mean = 100.000015     |disp = 0.000096       |
+Test 1    |mean = 100.000221     |disp = -0.009766      |mean = 100.000221     |disp = 0.000088       |mean = 100.000183     |disp = 0.000088       |
+Test 2    |mean = 100.000366     |disp = -0.021484      |mean = 100.000366     |disp = 0.000098       |mean = 100.000267     |disp = 0.000099       |
+Test 3    |mean = 100.000206     |disp = 0.005859       |mean = 100.000206     |disp = 0.000098       |mean = 100.000191     |disp = 0.000098       |
+Test 4    |mean = 100.000526     |disp = -0.012695      |mean = 100.000526     |disp = 0.000098       |mean = 100.000404     |disp = 0.000098       |
+Test 5    |mean = 99.999832      |disp = -0.000977      |mean = 99.999832      |disp = 0.000105       |mean = 99.999847      |disp = 0.000106       |
+Test 6    |mean = 100.000610     |disp = -0.003906      |mean = 100.000610     |disp = 0.000098       |mean = 100.000610     |disp = 0.000098       |
+Test 7    |mean = 100.000427     |disp = -0.001953      |mean = 100.000427     |disp = 0.000097       |mean = 100.000366     |disp = 0.000097       |
+Test 8    |mean = 99.999344      |disp = 0.012695       |mean = 99.999344      |disp = 0.000094       |mean = 99.999397      |disp = 0.000094       |
+Test 9    |mean = 99.999886      |disp = -0.003906      |mean = 99.999886      |disp = 0.000101       |mean = 99.999847      |disp = 0.000101       |
+
+===FLOAT64===
+real_mean = 1.000000
+real_disp = 1.000000
+                       ---Fast Method---                          ---2 Pass Method---                         ---1 Pass Method---             
+Test 0    |mean = 1.004076       |disp = 0.888800       |mean = 1.004076       |disp = 0.888800       |mean = 1.005274       |disp = 0.888256       |
+Test 1    |mean = 1.020044       |disp = 1.078242       |mean = 1.020044       |disp = 1.078242       |mean = 1.020568       |disp = 1.079046       |
+Test 2    |mean = 1.003738       |disp = 1.009653       |mean = 1.003738       |disp = 1.009653       |mean = 1.003844       |disp = 1.010652       |
+Test 3    |mean = 1.015049       |disp = 1.004551       |mean = 1.015049       |disp = 1.004551       |mean = 1.015477       |disp = 1.005374       |
+Test 4    |mean = 1.010158       |disp = 1.035573       |mean = 1.010158       |disp = 1.035573       |mean = 1.009985       |disp = 1.036580       |
+Test 5    |mean = 0.972185       |disp = 0.926484       |mean = 0.972185       |disp = 0.926484       |mean = 0.972336       |disp = 0.927389       |
+Test 6    |mean = 0.973870       |disp = 1.054508       |mean = 0.973870       |disp = 1.054508       |mean = 0.973858       |disp = 1.055563       |
+Test 7    |mean = 1.016008       |disp = 0.930861       |mean = 1.016008       |disp = 0.930861       |mean = 1.016978       |disp = 0.930852       |
+Test 8    |mean = 0.972852       |disp = 1.021840       |mean = 0.972852       |disp = 1.021840       |mean = 0.973392       |disp = 1.022572       |
+Test 9    |mean = 0.988637       |disp = 0.987407       |mean = 0.988637       |disp = 0.987407       |mean = 0.988441       |disp = 0.988357       |
+
+===FLOAT64===
+real_mean = 10.000000
+real_disp = 0.010000
+                       ---Fast Method---                          ---2 Pass Method---                         ---1 Pass Method---             
+Test 0    |mean = 9.999265       |disp = 0.010002       |mean = 9.999265       |disp = 0.010002       |mean = 9.999287       |disp = 0.010012       |
+Test 1    |mean = 9.997030       |disp = 0.009993       |mean = 9.997030       |disp = 0.009993       |mean = 9.997081       |disp = 0.010000       |
+Test 2    |mean = 10.007045      |disp = 0.009945       |mean = 10.007045      |disp = 0.009945       |mean = 10.006907      |disp = 0.009936       |
+Test 3    |mean = 10.004265      |disp = 0.009651       |mean = 10.004265      |disp = 0.009651       |mean = 10.004157      |disp = 0.009649       |
+Test 4    |mean = 9.998409       |disp = 0.010524       |mean = 9.998409       |disp = 0.010524       |mean = 9.998338       |disp = 0.010530       |
+Test 5    |mean = 9.999631       |disp = 0.009804       |mean = 9.999631       |disp = 0.009804       |mean = 9.999557       |disp = 0.009809       |
+Test 6    |mean = 10.004099      |disp = 0.010235       |mean = 10.004099      |disp = 0.010235       |mean = 10.004329      |disp = 0.010192       |
+Test 7    |mean = 10.002276      |disp = 0.009579       |mean = 10.002276      |disp = 0.009579       |mean = 10.002270      |disp = 0.009588       |
+Test 8    |mean = 10.001905      |disp = 0.010025       |mean = 10.001905      |disp = 0.010025       |mean = 10.001981      |disp = 0.010029       |
+Test 9    |mean = 9.999779       |disp = 0.009725       |mean = 9.999779       |disp = 0.009725       |mean = 9.999859       |disp = 0.009729       |
+
+===FLOAT64===
+real_mean = 100.000000
+real_disp = 0.000100
+                       ---Fast Method---                          ---2 Pass Method---                         ---1 Pass Method---             
+Test 0    |mean = 99.999711      |disp = 0.000093       |mean = 99.999711      |disp = 0.000093       |mean = 99.999713      |disp = 0.000093       |
+Test 1    |mean = 100.000656     |disp = 0.000100       |mean = 100.000656     |disp = 0.000100       |mean = 100.000649     |disp = 0.000100       |
+Test 2    |mean = 100.000578     |disp = 0.000108       |mean = 100.000578     |disp = 0.000108       |mean = 100.000580     |disp = 0.000108       |
+Test 3    |mean = 99.999761      |disp = 0.000096       |mean = 99.999761      |disp = 0.000096       |mean = 99.999760      |disp = 0.000096       |
+Test 4    |mean = 99.999782      |disp = 0.000102       |mean = 99.999782      |disp = 0.000102       |mean = 99.999789      |disp = 0.000102       |
+Test 5    |mean = 99.999971      |disp = 0.000102       |mean = 99.999971      |disp = 0.000102       |mean = 99.999983      |disp = 0.000102       |
+Test 6    |mean = 99.999690      |disp = 0.000108       |mean = 99.999690      |disp = 0.000108       |mean = 99.999716      |disp = 0.000108       |
+Test 7    |mean = 99.999553      |disp = 0.000099       |mean = 99.999553      |disp = 0.000099       |mean = 99.999547      |disp = 0.000099       |
+Test 8    |mean = 99.999518      |disp = 0.000100       |mean = 99.999518      |disp = 0.000100       |mean = 99.999526      |disp = 0.000100       |
+Test 9    |mean = 100.000021     |disp = 0.000105       |mean = 100.000021     |disp = 0.000105       |mean = 99.999998      |disp = 0.000105       |
+
