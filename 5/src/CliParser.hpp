@@ -50,7 +50,7 @@ private:
 //======================================IMPLEMENTATION==============================================
 
 void CliParser::PrintHelp(std::ostream& output) {
-    output << "Usage: cat_ast_roof.out [OPTIONS]\n"
+    output << "Usage: hi_quad.out [OPTIONS]\n"
               "Options:\n"
               "  -o, --output <FILE>        Specify output file (default: data.json)\n"
               "  -s, --seed <VALUE>         Specify random seed (default: random)\n"
