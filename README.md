@@ -94,3 +94,19 @@ $ make OPTS="--degree 100" PY_OPTS="data.json -o plot_n100.png"
 ```
 
 Полученные графики для некоторых параметров можно посмотреть в папке ```examples```
+
+### Дополнительное задание (связь нормального и логнормального распределений)
+
+$$
+\begin{aligned}
+F_{LN}(x, a, \sigma)  &= F_{N}(\ln x, a, \sigma) - \text{функции распределения}                               \\
+                      &= \int_{-\infty}^{\ln x} \frac{1}{\sigma\sqrt{2\pi}} e^{-\frac{(t-a)^2}{2\sigma^2}} dt \\
+                      &\quad \left| \begin{matrix} 
+                          t = \ln y                                                                           \\ 
+                          dt = \frac{dy}{y}                                                                   \\ 
+                          -\infty \to 0                                                                       \\ 
+                          \ln x \to x 
+                      \end{matrix} \right.                                                                    \\
+                      &= \int_{0}^{x} \frac{1}{y\sigma\sqrt{2\pi}} e^{-\frac{(\ln y - a)^2}{2\sigma^2}} dy
+\end{aligned}
+$$
