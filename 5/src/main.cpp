@@ -55,13 +55,11 @@ int main(int argc, char* argv[]) try {
     const std::uniform_real_distribution<double> dist(0.0, 1.0);
     const BaseRngT<double> rng = std::bind(dist, gen);
 
-    constexpr size_t ITERS_CNT = 1'000'000;
-
     ChiSquareGen<double> chi2_gen(rng, opts.degree);
 
-    std::vector<double> samples(ITERS_CNT);
+    std::vector<double> samples(opts.n);
 
-    for (size_t i = 0; i < ITERS_CNT; ++i) {
+    for (size_t i = 0; i < opts.n; ++i) {
         const double sample = chi2_gen();
         samples[i] = sample; 
     }

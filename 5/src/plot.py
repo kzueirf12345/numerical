@@ -123,7 +123,7 @@ def print_validation_report(samples: np.ndarray, n_dof: int):
 
 def main():
     parser = argparse.ArgumentParser(
-        description='Визуализация генератора хи-квадрат из JSON'
+        description='Визуализация генератора хи-квадрат'
     )
     parser.add_argument(
         'input',
