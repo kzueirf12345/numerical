@@ -1,6 +1,5 @@
-.PHONY: all build clean logger_build logger_clean logger_rebuild \
-						 stack_build  stack_clean  stack_rebuild \
-		clean_all clean_log clean_out clean_obj clean_deps clean_txt clean_bin \
+.PHONY: all build clean gen start plot\
+		clean_log clean_out clean_obj clean_deps clean_txt clean_bin \
 
 
 PROJECT_NAME = hi_quad
@@ -81,8 +80,6 @@ $(BUILD_DIRS):
 ./$(BUILD_DIR)/:
 	mkdir $@
 
-
-clean_all: clean_obj clean_deps clean_out stack_clean logger_clean
 
 clean: clean_obj clean_deps clean_out
 
