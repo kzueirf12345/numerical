@@ -5,9 +5,9 @@
 #include <functional>
 #include <random>
 
-#include "CliParser.hpp"
+#include "CliParser/CliParser.hpp"
 
-#include "ChiSquareGen.hpp"
+#include "generators/ChiSquareGen.hpp"
 
 
 template <std::floating_point T>

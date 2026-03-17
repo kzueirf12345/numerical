@@ -1,53 +1,8 @@
-#pragma once
+#include "CliParser/CliParser.hpp"
 
-#include <cmath>
-#include <cstdlib>
-#include <cstring>
-#include <iostream>
-#include <string>
-#include <optional>
-
-class CliParser {
-
-public:
-
-    struct Options {
-        std::string output_file = "data.json";
-        std::optional<uint64_t> seed;
-        uint64_t degree = 5; 
-        size_t n = 1'000'000;
-        bool help_requested = false;
-    };
-
-public:
-
-    inline CliParser(int argc, char* argv[]) {
-        parse(argc, argv);
-    }
-
-    [[nodiscard]] inline const Options& options    () const noexcept { return options_; }
-    [[nodiscard]] inline bool           shouldExit () const noexcept { return options_.help_requested; }
-
-    static inline void PrintHelp(std::ostream& output);
-
-private:
-
-    inline void parse(int argc, char* argv[]);
-
-    static inline void checkRequireArgument(int index, int argc, const std::string& option);
-
-    static inline uint64_t parseSeed(const char* str, const std::string& option);
-    static inline uint64_t parseDegree(const char* str, const std::string& option);
-    static inline size_t   parseN(const char* str, const std::string& option);
-
-
-private:
-
-    Options options_;
-
-};
-
-//======================================IMPLEMENTATION==============================================
+CliParser::CliParser(int argc, char* argv[]) {
+    parse(argc, argv);
+}
 
 void CliParser::PrintHelp(std::ostream& output) {
     output << "Usage: hi_quad.out [OPTIONS]\n"
