@@ -1,0 +1,77 @@
+{
+"seed": 1627663343,
+"name": "TestsChi2",
+"description": "Two-pass test Chi2 generator with base RNG mt19937. Сompute p-values by Kolmagorov statistic, and final p-value with this p-values",
+"tests": [
+{
+	"name": "TestChi2",
+	"samples_cnt": 10000,
+	"seed": 450024547,
+	"degree": 5,
+	"final_p_value": 0.839456
+},
+{
+	"name": "TestChi2",
+	"samples_cnt": 10000,
+	"seed": 1864215878,
+	"degree": 5,
+	"final_p_value": 0.0353269
+},
+{
+	"name": "TestChi2",
+	"samples_cnt": 10000,
+	"seed": 1918532342,
+	"degree": 5,
+	"final_p_value": 0.639398
+},
+{
+	"name": "TestChi2",
+	"samples_cnt": 10000,
+	"seed": 1316498264,
+	"degree": 5,
+	"final_p_value": 0.829728
+},
+{
+	"name": "TestChi2",
+	"samples_cnt": 10000,
+	"seed": 2607072127,
+	"degree": 5,
+	"final_p_value": 0.74287
+},
+{
+	"name": "TestChi2",
+	"samples_cnt": 10000,
+	"seed": 4266874073,
+	"degree": 5,
+	"final_p_value": 0.827221
+},
+{
+	"name": "TestChi2",
+	"samples_cnt": 10000,
+	"seed": 445370787,
+	"degree": 5,
+	"final_p_value": 0.482361
+},
+{
+	"name": "TestChi2",
+	"samples_cnt": 10000,
+	"seed": 3516247957,
+	"degree": 5,
+	"final_p_value": 0.0489607
+},
+{
+	"name": "TestChi2",
+	"samples_cnt": 10000,
+	"seed": 3120842988,
+	"degree": 5,
+	"final_p_value": 0.165322
+},
+{
+	"name": "TestChi2",
+	"samples_cnt": 10000,
+	"seed": 1938044921,
+	"degree": 5,
+	"final_p_value": 0.422402
+}
+]
+}

@@ -1,4 +1,5 @@
 #include "CliParser/CliParser.hpp"
+#include <stdexcept>
 
 CliParser::CliParser(int argc, char* argv[]) {
     parse(argc, argv);
@@ -7,10 +8,22 @@ CliParser::CliParser(int argc, char* argv[]) {
 void CliParser::PrintHelp(std::ostream& output) {
     output << "Usage: hi_quad.out [OPTIONS]\n"
               "Options:\n"
+              "  -m, --mode <MODE_NAME>     Specify execution mode (";
+
+    for (size_t mode_ind = 0; mode_ind < MODE_NAMES_SIZE; ++mode_ind) {
+        output << MODE_NAMES[mode_ind];
+        if (mode_ind + 1 != MODE_NAMES_SIZE) {
+            output << ", ";
+        }
+    }
+              
+    output << ") (default: Chi2Export)\n"
               "  -o, --output <FILE>        Specify output file (default: data.json)\n"
               "  -s, --seed <VALUE>         Specify random seed (default: random)\n"
               "  -d, --degree <VALUE>       Specify degree of chi-square (default: 5)\n"
-              "  -n, --iters_cnt <VALUE>    Specify iterations count (default: 1'000'000)\n"
+              "  -n, --iters_cnt <VALUE>    Specify iterations count (default: 10'000)\n"
+              "  -t, --tests_cnt <VALUE>    Specify tests count (default: 10)\n"
+              "  -v, --verbose              Output exectuion progress\n"
               "  -h, --help                 Show this help message\n";
 }
 
@@ -37,6 +50,17 @@ void CliParser::parse(int argc, char* argv[]) {
         else if (arg == "-n" || arg == "--iters_cnt") {
             checkRequireArgument(i, argc, arg);
             options_.n = parseN(argv[++i], arg);
+        }
+        else if (arg == "-t" || arg == "--tests_cnt") {
+            checkRequireArgument(i, argc, arg);
+            options_.tests_cnt = parseTestsCnt(argv[++i], arg);
+        }
+        else if (arg == "-v" || arg == "--verbose") {
+            options_.verbose = true;
+        }
+        else if (arg == "-m" || arg == "--mode") {
+            checkRequireArgument(i, argc, arg);
+            options_.mode = parseMode(argv[++i], arg);
         }
         else if (arg.starts_with('-')) {
             throw std::invalid_argument("Unknown option: " + arg);
@@ -93,4 +117,37 @@ size_t CliParser::parseN(const char* str, const std::string& option) try {
 }
 catch (...) {
     throw std::invalid_argument("Invalid iterations count value for " + option + ": " + str);
+}
+
+size_t CliParser::parseTestsCnt(const char* str, const std::string& option) try {
+    size_t pos = 0;
+
+    unsigned long val = std::stoul(str, &pos);
+    if (pos != std::strlen(str)) {
+        throw std::invalid_argument("");
+    }
+
+    return static_cast<size_t>(val);
+}
+catch (...) {
+    throw std::invalid_argument("Invalid tests count value for " + option + ": " + str);
+}
+
+CliParser::Mode CliParser::parseMode(const char* str, const std::string& option) try {
+    Mode mode = Mode::SIZE_;
+
+    for (size_t cur_mode_ind = 0; cur_mode_ind < MODE_NAMES_SIZE; ++cur_mode_ind) {
+        if (MODE_NAMES[cur_mode_ind] == std::string_view(str)) {
+            mode = static_cast<Mode>(cur_mode_ind);
+        }
+    }
+
+    if (mode == Mode::SIZE_) {
+        throw std::invalid_argument("");
+    }
+
+    return mode;
+}
+catch (...) {
+    throw std::invalid_argument("Invalid mode value for " + option + ": " + str);
 }
