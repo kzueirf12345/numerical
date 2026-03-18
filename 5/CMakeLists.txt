@@ -35,11 +35,15 @@ if(SANITIZE AND NOT MSVC)
     )
 endif()
 
+###===========================================PACKAGES==============================================
+
+find_package(OpenMP REQUIRED)
 
 ###===========================================SUBDIRECTORY==========================================
 
 add_subdirectory(source/CliParser)
 add_subdirectory(source/generators)
+add_subdirectory(source/testing)
 
 add_executable(rng source/main.cpp)
 
@@ -52,6 +56,8 @@ if(SANITIZE AND NOT MSVC)
 endif()
 
 target_link_libraries(rng PRIVATE
+    OpenMP::OpenMP_CXX
     CliParser
     generators
+    testing
 )

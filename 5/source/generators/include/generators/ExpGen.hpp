@@ -3,7 +3,7 @@
 #include <concepts>
 #include <cmath>
 
-#include "common.hpp"
+#include "generators/common.hpp"
 
 
 template <std::floating_point T>
@@ -22,4 +22,4 @@ private:
     T lambda_;
 };
 
-#include "impl/ExpGen.tpp"
+#include "generators/impl/ExpGen.tpp"

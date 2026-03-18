@@ -2,7 +2,7 @@
 
 #include <numbers>
 
-#include "../NormalGen.hpp"
+#include "generators/NormalGen.hpp"
 
 template <std::floating_point T>
 NormalGen<T>::NormalGen(BaseRngT<T> base_rng) 

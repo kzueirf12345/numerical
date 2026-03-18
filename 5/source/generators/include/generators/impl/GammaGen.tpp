@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../GammaGen.hpp"
+#include "generators/GammaGen.hpp"
 
 template <std::floating_point T>
 GammaGen<T>::GammaGen(BaseRngT<T> base_rng, uint64_t k, T theta) 

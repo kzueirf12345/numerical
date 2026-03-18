@@ -3,7 +3,7 @@
 #include <concepts>
 #include <cstdint>
 
-#include "ExpGen.hpp"
+#include "generators/ExpGen.hpp"
 
 
 template <std::floating_point T>
@@ -23,4 +23,4 @@ private:
     T theta_;
 };
 
-#include "impl/GammaGen.tpp"
+#include "generators/impl/GammaGen.tpp"

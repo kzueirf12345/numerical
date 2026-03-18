@@ -2,8 +2,8 @@
 
 #include <cstdint>
 
-#include "GammaGen.hpp"
-#include "NormalGen.hpp"
+#include "generators/GammaGen.hpp"
+#include "generators/NormalGen.hpp"
 
 
 template <std::floating_point T>
@@ -15,6 +15,8 @@ public:
 
     T operator()();
 
+    T analit(T x) const;
+
 private:
 
     T genWithNormal();
@@ -25,7 +27,7 @@ private:
     NormalGen<T> normal_gen_;
 
     uint64_t degree_;
-    bool use_gamma;
+    bool is_even_degree_;
 };
 
-#include "impl/ChiSquareGen.tpp"
+#include "generators/impl/ChiSquareGen.tpp"

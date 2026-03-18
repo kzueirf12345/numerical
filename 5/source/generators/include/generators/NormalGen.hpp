@@ -3,7 +3,7 @@
 #include <concepts>
 #include <cmath>
 
-#include "common.hpp"
+#include "generators/common.hpp"
 
 
 template <std::floating_point T>
@@ -23,4 +23,4 @@ private:
     double cache_val_ = NAN;
 };
 
-#include "impl/NormalGen.tpp"
+#include "generators/impl/NormalGen.tpp"

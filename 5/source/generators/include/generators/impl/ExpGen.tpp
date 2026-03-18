@@ -2,7 +2,7 @@
 
 #include <stdexcept>
 
-#include "../ExpGen.hpp"
+#include "generators/ExpGen.hpp"
 
 template <std::floating_point T>
 ExpGen<T>::ExpGen(BaseRngT<T> base_rng, T lambda) 
