@@ -23,4 +23,14 @@ private:
     double cache_val_ = NAN;
 };
 
+template <std::floating_point T>
+T NormalDistrib(T z) {
+    return T(0.5) * (T(1.0) + std::erf(z / std::sqrt(T(2.0))));
+}
+
+template <std::floating_point T>
+T NormalDistrib(T x, T mean, T stddev) {
+    return NormalDistrib((x - mean) / stddev);
+}
+
 #include "generators/impl/NormalGen.tpp"

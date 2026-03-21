@@ -15,8 +15,6 @@ public:
 
     T operator()();
 
-    T analit(T x) const;
-
 private:
 
     T genWithNormal();
@@ -29,5 +27,8 @@ private:
     uint64_t degree_;
     bool is_even_degree_;
 };
+
+template <std::floating_point T>
+T ChiSquareDistrib(T x, uint64_t degree);
 
 #include "generators/impl/ChiSquareGen.tpp"

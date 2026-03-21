@@ -2,7 +2,7 @@ import json
 import numpy as np
 import matplotlib.pyplot as plt
 import scipy
-from scipy.stats import chi2
+from scipy.stats import chi2, binom
 from pathlib import Path
 import argparse
 

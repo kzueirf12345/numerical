@@ -1,3 +1,6 @@
+#include <bit>
+#include <bitset>
+#include <climits>
 #include <concepts>
 #include <cstdint>
 #include <cstdlib>
@@ -6,10 +9,14 @@
 #include <random>
 #include <omp.h>
 #include <stdexcept>
+#include <cstdint>
 
 #include "CliParser/CliParser.hpp"
 
+#include "generators/BinomGen.hpp"
 #include "generators/ChiSquareGen.hpp"
+#include "generators/NormalGen.hpp"
+#include "testing/Autocorrelation.hpp"
 #include "testing/Kolmagorov.hpp"
 
 static void Chi2Export(const CliParser::Options& opts, std::ostream& out);
@@ -184,20 +191,86 @@ void TestingRng(const CliParser::Options& opts, std::ostream& out, uint64_t seed
 //-----------------------------------------HELPERS--------------------------------------------------
 
 void TestRng(std::ostream& out, uint64_t seed, size_t n) {
-    (void)seed;
-    (void)n;
-    out << "TODO ;)\n";
-    //TODO implement
+    const uint64_t master_seed = seed;
+
+    //TODO remove and use --flag
+    const size_t lag = 9;
+    const size_t n_lvl1 = 5000;
+    const size_t n_lvl2 = n;
+    const size_t distrib_n = n_lvl1 * sizeof(uint64_t) *  CHAR_BIT - lag;
+
+    Kolmagorov<double>::DistribFoo calc_p_value = nullptr;
+
+    if (distrib_n > 100) {
+        calc_p_value = [mean = distrib_n * 0.5, stddev = std::sqrt(distrib_n * 0.25)] (double x) {
+            const double cdf = NormalDistrib<double>(x, mean, stddev);
+            return 2.0 * std::min(cdf, 1.0 - cdf);
+        };
+    }
+    else {
+        calc_p_value = [](double x) { 
+            const uint64_t k = static_cast<uint64_t>(x);
+            assert(k < distrib_n);
+            const double cdf = BinomDistrib(k, distrib_n, 0.5);
+            return 2.0 * std::min(cdf, 1.0 - cdf);
+        };
+    }
+
+    std::vector<double> p_values(n_lvl2);
+
+    std::vector<uint32_t> seeds(n_lvl2);
+    std::seed_seq seed_seq{static_cast<uint32_t>(master_seed), static_cast<uint32_t>(master_seed >> 32)};  
+    seed_seq.generate(seeds.begin(), seeds.end());
+
+    #pragma omp parallel for schedule(dynamic)
+    for (size_t i = 0; i < n_lvl2; ++i) {
+        std::mt19937 gen{seeds[i]};
+        std::bernoulli_distribution dist(0.5);
+
+        std::vector<uint64_t> samples(n_lvl1);
+        
+        for (size_t j = 0; j < n_lvl1; ++j) {
+            uint64_t sample = 0;
+            for (size_t bit_ind = 0; bit_ind < sizeof(uint64_t) * CHAR_BIT; ++bit_ind) {
+                sample |= static_cast<uint64_t>(dist(gen)) << bit_ind;
+            }
+            samples[j] = sample;
+        }
+
+        uint64_t stat = Autocorrelation::computeStatistic(samples, lag);
+
+        // std::cerr << "stat " << stat << std::endl;
+
+        p_values[i] = calc_p_value(static_cast<double>(stat));
+
+        // std::cerr << "p_values[i] " << p_values[i] << std::endl;
+
+    }
+
+    const double kolm_p_value = Kolmagorov<double>::computePValue(p_values);
+
+    out << "{\n"
+        "\t\"name\": \"TestRng\",\n"
+        "\t\"n_lvl1\": "        << n_lvl1 << ",\n"
+        "\t\"n_lvl2\": "        << n_lvl2 << ",\n"
+        "\t\"lag\": "           << lag << ",\n"
+        "\t\"seed\": "          << master_seed << ",\n"
+        "\t\"final_p_value\": " << kolm_p_value  << "\n"
+    "}";
 }
 
 void TestChi2(std::ostream& out, uint64_t seed, size_t n, uint64_t degree) {
     const uint64_t master_seed = seed;
 
-    std::vector<double> kolm_p_values(n);
+    std::vector<double> p_values(n);
 
     std::vector<uint32_t> seeds(n);
     std::seed_seq seed_seq{static_cast<uint32_t>(master_seed), static_cast<uint32_t>(master_seed >> 32)};  
     seed_seq.generate(seeds.begin(), seeds.end());
+
+    const Kolmagorov<double>::DistribFoo chi2_distrib = [degree](double x){ 
+        return ChiSquareDistrib(x, degree);
+    };
 
     #pragma omp parallel for schedule(dynamic)
     for (size_t i = 0; i < n; ++i) {
@@ -214,13 +287,10 @@ void TestChi2(std::ostream& out, uint64_t seed, size_t n, uint64_t degree) {
             samples[j] = sample; 
         }
 
-        const Kolmagorov<double>::AnalitFoo analit_chi2 = 
-            std::bind(&ChiSquareGen<double>::analit, &chi2_gen, std::placeholders::_1);
-
-        kolm_p_values[i] = Kolmagorov<double>::computePValue(samples, analit_chi2);
+        p_values[i] = Kolmagorov<double>::computePValue(samples, chi2_distrib);
     }
 
-    const double kolm_p_value = Kolmagorov<double>::computePValue(kolm_p_values);
+    const double kolm_p_value = Kolmagorov<double>::computePValue(p_values);
 
     out << "{\n"
         "\t\"name\": \"TestChi2\",\n"

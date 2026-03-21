@@ -1,0 +1,46 @@
+{
+"seed": 1627663343,
+"name": "TestsRng",
+"tests": [
+{
+	"name": "TestRng",
+	"n_lvl1": 5000,
+	"n_lvl2": 100000,
+	"lag": 9,
+	"seed": 4001572633,
+	"final_p_value": 0.216015
+},
+{
+	"name": "TestRng",
+	"n_lvl1": 5000,
+	"n_lvl2": 100000,
+	"lag": 9,
+	"seed": 1593677873,
+	"final_p_value": 0.0933447
+},
+{
+	"name": "TestRng",
+	"n_lvl1": 5000,
+	"n_lvl2": 100000,
+	"lag": 9,
+	"seed": 96298173,
+	"final_p_value": 0.18059
+},
+{
+	"name": "TestRng",
+	"n_lvl1": 5000,
+	"n_lvl2": 100000,
+	"lag": 9,
+	"seed": 4031903123,
+	"final_p_value": 0.245035
+},
+{
+	"name": "TestRng",
+	"n_lvl1": 5000,
+	"n_lvl2": 100000,
+	"lag": 9,
+	"seed": 1942886411,
+	"final_p_value": 0.00224564
+}
+]
+}

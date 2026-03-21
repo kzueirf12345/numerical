@@ -36,16 +36,16 @@ T ChiSquareGen<T>::genWithNormal() {
 }
 
 template <std::floating_point T>
-T ChiSquareGen<T>::analit(T x) const {
+T ChiSquareDistrib(T x, uint64_t degree) {
     const T half_x = x / 2;
     const T exp_neg_half_x = std::exp(-half_x);
 
-    if (is_even_degree_) {
+    if (degree % 2 == 0) {
         T sum = 0;
 
         T temp = 1;
 
-        for (size_t i = 1; i <= degree_ / 2; ++i) {
+        for (size_t i = 1; i <= degree / 2; ++i) {
             sum += temp;
             temp *= half_x / i;
         }
@@ -55,14 +55,14 @@ T ChiSquareGen<T>::analit(T x) const {
 
     const T erf_term = std::erf(std::sqrt(half_x));
 
-    if (degree_ == 1) {
+    if (degree == 1) {
         return erf_term;
     }
 
     T sum = 0;
     T temp = std::sqrt(x);
 
-    for (size_t i = 1; 2 * i <= degree_ - 1; ++i) {
+    for (size_t i = 1; 2 * i <= degree - 1; ++i) {
         sum += temp;
         temp *= x / (2 * i + 1);
     }
