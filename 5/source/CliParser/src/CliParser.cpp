@@ -21,7 +21,9 @@ void CliParser::PrintHelp(std::ostream& output) {
               "  -o, --output <FILE>        Specify output file (default: data.json)\n"
               "  -s, --seed <VALUE>         Specify random seed (default: random)\n"
               "  -d, --degree <VALUE>       Specify degree of chi-square (default: 5)\n"
-              "  -n, --iters_cnt <VALUE>    Specify iterations count (default: 10'000)\n"
+              "  -n1,--n_lvl1 <VALUE>       Specify p-value count (default: 10'000)\n"
+              "  -n2,--n_lvl2 <VALUE>       Specify iterations count for 1 p-value (default: 10'000)\n"
+              "  -l, --lag    <VALUE>       Specify lag for autocorelation test RNG (default: 2000)"
               "  -t, --tests_cnt <VALUE>    Specify tests count (default: 10)\n"
               "  -v, --verbose              Output exectuion progress\n"
               "  -h, --help                 Show this help message\n";
@@ -41,19 +43,27 @@ void CliParser::parse(int argc, char* argv[]) {
         }
         else if (arg == "-s" || arg == "--seed") {
             checkRequireArgument(i, argc, arg);
-            options_.seed = parseSeed(argv[++i], arg);
+            options_.seed = parseUint64(argv[++i], arg);
         }
         else if (arg == "-d" || arg == "--degree") {
             checkRequireArgument(i, argc, arg);
-            options_.degree = parseDegree(argv[++i], arg);
+            options_.degree = parseUint64(argv[++i], arg);
         }
-        else if (arg == "-n" || arg == "--iters_cnt") {
+        else if (arg == "-n2" || arg == "--n_lvl2") {
             checkRequireArgument(i, argc, arg);
-            options_.n = parseN(argv[++i], arg);
+            options_.n_lvl2 = parseSize(argv[++i], arg);
+        }
+        else if (arg == "-n1" || arg == "--n_lvl1") {
+            checkRequireArgument(i, argc, arg);
+            options_.n_lvl1 = parseSize(argv[++i], arg);
+        }
+        else if (arg == "-l" || arg == "--lag") {
+            checkRequireArgument(i, argc, arg);
+            options_.lag = parseSize(argv[++i], arg);
         }
         else if (arg == "-t" || arg == "--tests_cnt") {
             checkRequireArgument(i, argc, arg);
-            options_.tests_cnt = parseTestsCnt(argv[++i], arg);
+            options_.tests_cnt = parseSize(argv[++i], arg);
         }
         else if (arg == "-v" || arg == "--verbose") {
             options_.verbose = true;
@@ -77,7 +87,7 @@ void CliParser::checkRequireArgument(int index, int argc, const std::string& opt
     }
 }
 
-uint64_t CliParser::parseSeed(const char* str, const std::string& option) try {
+uint64_t CliParser::parseUint64(const char* str, const std::string& option) try {
     size_t pos = 0;
 
     unsigned long val = std::stoul(str, &pos);
@@ -88,24 +98,10 @@ uint64_t CliParser::parseSeed(const char* str, const std::string& option) try {
     return static_cast<uint64_t>(val);
 }
 catch (...) {
-    throw std::invalid_argument("Invalid seed value for " + option + ": " + str);
+    throw std::invalid_argument("Invalid uint64_t value for " + option + ": " + str);
 }
 
-uint64_t CliParser::parseDegree(const char* str, const std::string& option) try {
-    size_t pos = 0;
-
-    unsigned long val = std::stoul(str, &pos);
-    if (pos != std::strlen(str)) {
-        throw std::invalid_argument("");
-    }
-
-    return static_cast<uint64_t>(val);
-}
-catch (...) {
-    throw std::invalid_argument("Invalid degree value for " + option + ": " + str);
-}
-
-size_t CliParser::parseN(const char* str, const std::string& option) try {
+size_t CliParser::parseSize(const char* str, const std::string& option) try {
     size_t pos = 0;
 
     unsigned long val = std::stoul(str, &pos);
@@ -116,21 +112,7 @@ size_t CliParser::parseN(const char* str, const std::string& option) try {
     return static_cast<size_t>(val);
 }
 catch (...) {
-    throw std::invalid_argument("Invalid iterations count value for " + option + ": " + str);
-}
-
-size_t CliParser::parseTestsCnt(const char* str, const std::string& option) try {
-    size_t pos = 0;
-
-    unsigned long val = std::stoul(str, &pos);
-    if (pos != std::strlen(str)) {
-        throw std::invalid_argument("");
-    }
-
-    return static_cast<size_t>(val);
-}
-catch (...) {
-    throw std::invalid_argument("Invalid tests count value for " + option + ": " + str);
+    throw std::invalid_argument("Invalid size_t value for " + option + ": " + str);
 }
 
 CliParser::Mode CliParser::parseMode(const char* str, const std::string& option) try {

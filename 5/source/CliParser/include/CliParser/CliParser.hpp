@@ -32,7 +32,9 @@ public:
         std::string output_file = "data.json";
         std::optional<uint64_t> seed = std::nullopt;
         uint64_t degree = 5; 
-        size_t n = 10'000;
+        size_t n_lvl2 = 10'000;
+        size_t n_lvl1 = 10'000;
+        size_t lag = 2000;
         size_t tests_cnt = 10;
         bool verbose = false;
         bool help_requested = false;
@@ -54,10 +56,8 @@ private:
 
     static void checkRequireArgument(int index, int argc, const std::string& option);
 
-    static uint64_t parseSeed(const char* str, const std::string& option);
-    static uint64_t parseDegree(const char* str, const std::string& option);
-    static size_t parseN(const char* str, const std::string& option);
-    static size_t parseTestsCnt(const char* str, const std::string& option);
+    static uint64_t parseUint64(const char* str, const std::string& option);
+    static size_t parseSize(const char* str, const std::string& option);
     static Mode parseMode(const char* str, const std::string& option);
 
 

@@ -1,5 +1,3 @@
-#include <bit>
-#include <bitset>
 #include <climits>
 #include <concepts>
 #include <cstdint>
@@ -113,8 +111,8 @@ void Chi2ExportSamples(
     uint64_t seed
 );
 
-static void TestChi2(std::ostream& out, uint64_t seed, size_t n, uint64_t degree);
-static void TestRng(std::ostream& out, uint64_t seed, size_t n);
+static void TestChi2(std::ostream& out, uint64_t seed, size_t n_lvl2, size_t n_lvl1, uint64_t degree);
+static void TestRng(std::ostream& out, uint64_t seed, size_t n_lvl2, size_t n_lvl1, size_t lag);
 
 //}}}-----------------------------------------HELPERS-----------------------------------------------
 
@@ -126,9 +124,9 @@ void Chi2Export(const CliParser::Options& opts, std::ostream& out) {
 
     ChiSquareGen<double> chi2_gen(rng, opts.degree);
 
-    std::vector<double> samples(opts.n);
+    std::vector<double> samples(opts.n_lvl2);
 
-    for (size_t i = 0; i < opts.n; ++i) {
+    for (size_t i = 0; i < opts.n_lvl2; ++i) {
         const double sample = chi2_gen();
         samples[i] = sample; 
     }
@@ -152,7 +150,7 @@ void TestingChi2(const CliParser::Options& opts, std::ostream& out, uint64_t see
         if (opts.verbose) {
             std::cout << "Test №" << test_num << "...\n";
         }
-        TestChi2(out, seeds[test_num], opts.n, opts.degree);
+        TestChi2(out, seeds[test_num], opts.n_lvl2, opts.n_lvl1, opts.degree);
         if (test_num + 1 != opts.tests_cnt) {
             out << ",";
         }
@@ -165,8 +163,6 @@ void TestingRng(const CliParser::Options& opts, std::ostream& out, uint64_t seed
     out << "{\n"
         "\"seed\": " << seed << ",\n"
         "\"name\": \"TestsRng\",\n"
-        // "\"description\": \"Two-pass test Chi2 generator with base RNG mt19937. "
-        // "Сompute p-values by Kolmagorov statistic, and final p-value with this p-values\",\n"
         "\"tests\": [\n";
 
     std::vector<uint32_t> seeds(opts.tests_cnt);
@@ -177,7 +173,7 @@ void TestingRng(const CliParser::Options& opts, std::ostream& out, uint64_t seed
         if (opts.verbose) {
             std::cout << "Test №" << test_num << "...\n";
         }
-        TestRng(out, seeds[test_num], opts.n);
+        TestRng(out, seeds[test_num], opts.n_lvl2, opts.n_lvl1, opts.lag);
         if (test_num + 1 != opts.tests_cnt) {
             out << ",";
         }
@@ -190,13 +186,9 @@ void TestingRng(const CliParser::Options& opts, std::ostream& out, uint64_t seed
 
 //-----------------------------------------HELPERS--------------------------------------------------
 
-void TestRng(std::ostream& out, uint64_t seed, size_t n) {
+void TestRng(std::ostream& out, uint64_t seed, size_t n_lvl2, size_t n_lvl1, size_t lag) {
     const uint64_t master_seed = seed;
 
-    //TODO remove and use --flag
-    const size_t lag = 9;
-    const size_t n_lvl1 = 5000;
-    const size_t n_lvl2 = n;
     const size_t distrib_n = n_lvl1 * sizeof(uint64_t) *  CHAR_BIT - lag;
 
     Kolmagorov<double>::DistribFoo calc_p_value = nullptr;
@@ -208,7 +200,7 @@ void TestRng(std::ostream& out, uint64_t seed, size_t n) {
         };
     }
     else {
-        calc_p_value = [](double x) { 
+        calc_p_value = [distrib_n](double x) { 
             const uint64_t k = static_cast<uint64_t>(x);
             assert(k < distrib_n);
             const double cdf = BinomDistrib(k, distrib_n, 0.5);
@@ -259,12 +251,12 @@ void TestRng(std::ostream& out, uint64_t seed, size_t n) {
     "}";
 }
 
-void TestChi2(std::ostream& out, uint64_t seed, size_t n, uint64_t degree) {
+void TestChi2(std::ostream& out, uint64_t seed, size_t n_lvl2, size_t n_lvl1, uint64_t degree) {
     const uint64_t master_seed = seed;
 
-    std::vector<double> p_values(n);
+    std::vector<double> p_values(n_lvl2);
 
-    std::vector<uint32_t> seeds(n);
+    std::vector<uint32_t> seeds(n_lvl2);
     std::seed_seq seed_seq{static_cast<uint32_t>(master_seed), static_cast<uint32_t>(master_seed >> 32)};  
     seed_seq.generate(seeds.begin(), seeds.end());
 
@@ -273,16 +265,16 @@ void TestChi2(std::ostream& out, uint64_t seed, size_t n, uint64_t degree) {
     };
 
     #pragma omp parallel for schedule(dynamic)
-    for (size_t i = 0; i < n; ++i) {
+    for (size_t i = 0; i < n_lvl2; ++i) {
         const std::mt19937 gen{seeds[i]};
         const std::uniform_real_distribution<double> dist(0.0, 1.0);
         const BaseRngT<double> rng = std::bind(dist, gen);
 
         ChiSquareGen<double> chi2_gen(rng, degree);
 
-        std::vector<double> samples(n);
+        std::vector<double> samples(n_lvl1);
 
-        for (size_t j = 0; j < n; ++j) {
+        for (size_t j = 0; j < n_lvl1; ++j) {
             const double sample = chi2_gen();
             samples[j] = sample; 
         }
@@ -294,9 +286,10 @@ void TestChi2(std::ostream& out, uint64_t seed, size_t n, uint64_t degree) {
 
     out << "{\n"
         "\t\"name\": \"TestChi2\",\n"
-        "\t\"samples_cnt\": " << n << ",\n"
-        "\t\"seed\": " << master_seed << ",\n"
-        "\t\"degree\": " << degree << ",\n"
+        "\t\"n_lvl1\": "        << n_lvl1 << ",\n"
+        "\t\"n_lvl2\": "        << n_lvl2 << ",\n"
+        "\t\"degree\": "        << degree << ",\n"
+        "\t\"seed\": "          << master_seed << ",\n"
         "\t\"final_p_value\": " << kolm_p_value  << "\n"
     "}";
 }

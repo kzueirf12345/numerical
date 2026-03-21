@@ -1,0 +1,406 @@
+{
+"seed": 1627663343,
+"name": "TestsRng",
+"tests": [
+{
+	"name": "TestRng",
+	"n_lvl1": 10000,
+	"n_lvl2": 1000,
+	"lag": 10,
+	"seed": 3731687486,
+	"final_p_value": 0.0924527
+},
+{
+	"name": "TestRng",
+	"n_lvl1": 10000,
+	"n_lvl2": 1000,
+	"lag": 10,
+	"seed": 1497194709,
+	"final_p_value": 0.290746
+},
+{
+	"name": "TestRng",
+	"n_lvl1": 10000,
+	"n_lvl2": 1000,
+	"lag": 10,
+	"seed": 1759853687,
+	"final_p_value": 0.252929
+},
+{
+	"name": "TestRng",
+	"n_lvl1": 10000,
+	"n_lvl2": 1000,
+	"lag": 10,
+	"seed": 1440174397,
+	"final_p_value": 0.736242
+},
+{
+	"name": "TestRng",
+	"n_lvl1": 10000,
+	"n_lvl2": 1000,
+	"lag": 10,
+	"seed": 2903004210,
+	"final_p_value": 0.0347545
+},
+{
+	"name": "TestRng",
+	"n_lvl1": 10000,
+	"n_lvl2": 1000,
+	"lag": 10,
+	"seed": 845400021,
+	"final_p_value": 0.79454
+},
+{
+	"name": "TestRng",
+	"n_lvl1": 10000,
+	"n_lvl2": 1000,
+	"lag": 10,
+	"seed": 1479448522,
+	"final_p_value": 0.438337
+},
+{
+	"name": "TestRng",
+	"n_lvl1": 10000,
+	"n_lvl2": 1000,
+	"lag": 10,
+	"seed": 3754689166,
+	"final_p_value": 0.964053
+},
+{
+	"name": "TestRng",
+	"n_lvl1": 10000,
+	"n_lvl2": 1000,
+	"lag": 10,
+	"seed": 2927710477,
+	"final_p_value": 0.0015797
+},
+{
+	"name": "TestRng",
+	"n_lvl1": 10000,
+	"n_lvl2": 1000,
+	"lag": 10,
+	"seed": 1278615724,
+	"final_p_value": 0.386241
+},
+{
+	"name": "TestRng",
+	"n_lvl1": 10000,
+	"n_lvl2": 1000,
+	"lag": 10,
+	"seed": 2385553369,
+	"final_p_value": 0.523448
+},
+{
+	"name": "TestRng",
+	"n_lvl1": 10000,
+	"n_lvl2": 1000,
+	"lag": 10,
+	"seed": 743363150,
+	"final_p_value": 0.627255
+},
+{
+	"name": "TestRng",
+	"n_lvl1": 10000,
+	"n_lvl2": 1000,
+	"lag": 10,
+	"seed": 158331326,
+	"final_p_value": 0.609115
+},
+{
+	"name": "TestRng",
+	"n_lvl1": 10000,
+	"n_lvl2": 1000,
+	"lag": 10,
+	"seed": 2543283209,
+	"final_p_value": 0.384153
+},
+{
+	"name": "TestRng",
+	"n_lvl1": 10000,
+	"n_lvl2": 1000,
+	"lag": 10,
+	"seed": 3371778142,
+	"final_p_value": 0.864302
+},
+{
+	"name": "TestRng",
+	"n_lvl1": 10000,
+	"n_lvl2": 1000,
+	"lag": 10,
+	"seed": 1235353552,
+	"final_p_value": 0.286875
+},
+{
+	"name": "TestRng",
+	"n_lvl1": 10000,
+	"n_lvl2": 1000,
+	"lag": 10,
+	"seed": 1815474085,
+	"final_p_value": 0.469896
+},
+{
+	"name": "TestRng",
+	"n_lvl1": 10000,
+	"n_lvl2": 1000,
+	"lag": 10,
+	"seed": 2708880258,
+	"final_p_value": 0.35326
+},
+{
+	"name": "TestRng",
+	"n_lvl1": 10000,
+	"n_lvl2": 1000,
+	"lag": 10,
+	"seed": 1012703270,
+	"final_p_value": 0.800032
+},
+{
+	"name": "TestRng",
+	"n_lvl1": 10000,
+	"n_lvl2": 1000,
+	"lag": 10,
+	"seed": 4135365424,
+	"final_p_value": 0.804537
+},
+{
+	"name": "TestRng",
+	"n_lvl1": 10000,
+	"n_lvl2": 1000,
+	"lag": 10,
+	"seed": 4008778513,
+	"final_p_value": 0.288993
+},
+{
+	"name": "TestRng",
+	"n_lvl1": 10000,
+	"n_lvl2": 1000,
+	"lag": 10,
+	"seed": 2796233810,
+	"final_p_value": 0.0421637
+},
+{
+	"name": "TestRng",
+	"n_lvl1": 10000,
+	"n_lvl2": 1000,
+	"lag": 10,
+	"seed": 326394522,
+	"final_p_value": 0.764977
+},
+{
+	"name": "TestRng",
+	"n_lvl1": 10000,
+	"n_lvl2": 1000,
+	"lag": 10,
+	"seed": 2479326428,
+	"final_p_value": 0.552076
+},
+{
+	"name": "TestRng",
+	"n_lvl1": 10000,
+	"n_lvl2": 1000,
+	"lag": 10,
+	"seed": 185276784,
+	"final_p_value": 0.0975478
+},
+{
+	"name": "TestRng",
+	"n_lvl1": 10000,
+	"n_lvl2": 1000,
+	"lag": 10,
+	"seed": 3252468011,
+	"final_p_value": 0.345727
+},
+{
+	"name": "TestRng",
+	"n_lvl1": 10000,
+	"n_lvl2": 1000,
+	"lag": 10,
+	"seed": 2817376365,
+	"final_p_value": 0.204943
+},
+{
+	"name": "TestRng",
+	"n_lvl1": 10000,
+	"n_lvl2": 1000,
+	"lag": 10,
+	"seed": 3566727112,
+	"final_p_value": 0.192571
+},
+{
+	"name": "TestRng",
+	"n_lvl1": 10000,
+	"n_lvl2": 1000,
+	"lag": 10,
+	"seed": 3729720296,
+	"final_p_value": 0.52314
+},
+{
+	"name": "TestRng",
+	"n_lvl1": 10000,
+	"n_lvl2": 1000,
+	"lag": 10,
+	"seed": 1425665758,
+	"final_p_value": 0.559236
+},
+{
+	"name": "TestRng",
+	"n_lvl1": 10000,
+	"n_lvl2": 1000,
+	"lag": 10,
+	"seed": 1381210519,
+	"final_p_value": 0.132324
+},
+{
+	"name": "TestRng",
+	"n_lvl1": 10000,
+	"n_lvl2": 1000,
+	"lag": 10,
+	"seed": 2369762590,
+	"final_p_value": 0.692141
+},
+{
+	"name": "TestRng",
+	"n_lvl1": 10000,
+	"n_lvl2": 1000,
+	"lag": 10,
+	"seed": 3479579993,
+	"final_p_value": 0.576082
+},
+{
+	"name": "TestRng",
+	"n_lvl1": 10000,
+	"n_lvl2": 1000,
+	"lag": 10,
+	"seed": 1663234360,
+	"final_p_value": 0.115986
+},
+{
+	"name": "TestRng",
+	"n_lvl1": 10000,
+	"n_lvl2": 1000,
+	"lag": 10,
+	"seed": 1521452125,
+	"final_p_value": 0.0187019
+},
+{
+	"name": "TestRng",
+	"n_lvl1": 10000,
+	"n_lvl2": 1000,
+	"lag": 10,
+	"seed": 2187191629,
+	"final_p_value": 0.59197
+},
+{
+	"name": "TestRng",
+	"n_lvl1": 10000,
+	"n_lvl2": 1000,
+	"lag": 10,
+	"seed": 502956058,
+	"final_p_value": 0.276598
+},
+{
+	"name": "TestRng",
+	"n_lvl1": 10000,
+	"n_lvl2": 1000,
+	"lag": 10,
+	"seed": 4265483253,
+	"final_p_value": 0.283371
+},
+{
+	"name": "TestRng",
+	"n_lvl1": 10000,
+	"n_lvl2": 1000,
+	"lag": 10,
+	"seed": 2780202977,
+	"final_p_value": 0.0887533
+},
+{
+	"name": "TestRng",
+	"n_lvl1": 10000,
+	"n_lvl2": 1000,
+	"lag": 10,
+	"seed": 2167785178,
+	"final_p_value": 0.711046
+},
+{
+	"name": "TestRng",
+	"n_lvl1": 10000,
+	"n_lvl2": 1000,
+	"lag": 10,
+	"seed": 964716234,
+	"final_p_value": 0.481814
+},
+{
+	"name": "TestRng",
+	"n_lvl1": 10000,
+	"n_lvl2": 1000,
+	"lag": 10,
+	"seed": 1551560697,
+	"final_p_value": 0.236044
+},
+{
+	"name": "TestRng",
+	"n_lvl1": 10000,
+	"n_lvl2": 1000,
+	"lag": 10,
+	"seed": 2575413237,
+	"final_p_value": 0.523107
+},
+{
+	"name": "TestRng",
+	"n_lvl1": 10000,
+	"n_lvl2": 1000,
+	"lag": 10,
+	"seed": 424265496,
+	"final_p_value": 0.347859
+},
+{
+	"name": "TestRng",
+	"n_lvl1": 10000,
+	"n_lvl2": 1000,
+	"lag": 10,
+	"seed": 1257552758,
+	"final_p_value": 0.561779
+},
+{
+	"name": "TestRng",
+	"n_lvl1": 10000,
+	"n_lvl2": 1000,
+	"lag": 10,
+	"seed": 1696755741,
+	"final_p_value": 0.61126
+},
+{
+	"name": "TestRng",
+	"n_lvl1": 10000,
+	"n_lvl2": 1000,
+	"lag": 10,
+	"seed": 1387425670,
+	"final_p_value": 0.19614
+},
+{
+	"name": "TestRng",
+	"n_lvl1": 10000,
+	"n_lvl2": 1000,
+	"lag": 10,
+	"seed": 3479342501,
+	"final_p_value": 0.577421
+},
+{
+	"name": "TestRng",
+	"n_lvl1": 10000,
+	"n_lvl2": 1000,
+	"lag": 10,
+	"seed": 165305969,
+	"final_p_value": 0.526632
+},
+{
+	"name": "TestRng",
+	"n_lvl1": 10000,
+	"n_lvl2": 1000,
+	"lag": 10,
+	"seed": 1967388966,
+	"final_p_value": 0.25005
+}
+]
+}
