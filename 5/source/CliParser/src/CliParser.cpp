@@ -23,7 +23,7 @@ void CliParser::PrintHelp(std::ostream& output) {
               "  -d, --degree <VALUE>       Specify degree of chi-square (default: 5)\n"
               "  -n1,--n_lvl1 <VALUE>       Specify p-value count (default: 10'000)\n"
               "  -n2,--n_lvl2 <VALUE>       Specify iterations count for 1 p-value (default: 10'000)\n"
-              "  -l, --lag    <VALUE>       Specify lag for autocorelation test RNG (default: 2000)"
+              "  -l, --lag    <VALUE>       Specify lag for autocorelation test RNG (default: 2000)\n"
               "  -t, --tests_cnt <VALUE>    Specify tests count (default: 10)\n"
               "  -v, --verbose              Output exectuion progress\n"
               "  -h, --help                 Show this help message\n";

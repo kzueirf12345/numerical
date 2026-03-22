@@ -1,0 +1,258 @@
+\documentclass[12pt]{extarticle}
+\linespread{1.5}
+
+\title{Тестирование генераторов случайны чисел (ГСЧ)}
+\author{Владимир Попов}
+\date{\today}
+
+\usepackage{cmap}
+\usepackage[T2A]{fontenc}
+\usepackage[english, russian]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage{mathtools}
+\usepackage{amsfonts}
+\usepackage{graphicx}
+\usepackage{listings}
+\usepackage{courier}
+\usepackage{indentfirst}
+\usepackage{stmaryrd}
+\usepackage{caption}
+\captionsetup[figure]{labelformat=empty}
+\usepackage{amssymb}
+\usepackage{multirow, makecell, array}
+
+\usepackage{tikz}
+\usepackage{tzplot}
+\usetikzlibrary{arrows,decorations.pathmorphing,backgrounds,positioning,fit,petri}
+\usetikzlibrary{calc,intersections,through,backgrounds, quotes, angles}
+\usetikzlibrary{arrows,automata,positioning}
+\tikzset{snake it/.style={decorate, decoration=snake}}
+\usepackage{pgfplots,pgf-pie}
+
+\usepackage{geometry} % Меняем поля страницы
+\geometry{left=2cm}% левое поле
+\geometry{right=1.5cm}% правое поле
+\geometry{top=1cm}% верхнее поле
+\geometry{bottom=2cm}% нижнее поле
+
+\newtheorem{definition}{Определение}
+\newtheorem{remark}{Ремарка!}
+\newtheorem{theorem}{Теорема}
+
+\newcommand{\implyarrow}{%
+  \mathrel{\raisebox{1.3ex}{\rotatebox[origin=c]{90}{\mathhexbox37F}}}}
+
+\DeclareMathOperator{\arccot}{arccot}
+
+\usepackage{listings}
+\usepackage{xcolor}
+
+%New colors defined below
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+
+%Code listing style named "mystyle"
+\lstdefinestyle{mystyle}{
+  backgroundcolor=\color{backcolour},   commentstyle=\color{codegreen},
+  keywordstyle=\color{magenta},
+  numberstyle=\tiny\color{codegray},
+  stringstyle=\color{codepurple},
+  basicstyle=\ttfamily\footnotesize,
+  breakatwhitespace=false,         
+  breaklines=true,                 
+  captionpos=b,                    
+  keepspaces=true,                 
+  numbers=left,                    
+  numbersep=5pt,                  
+  showspaces=false,                
+  showstringspaces=false,
+  showtabs=false,                  
+  tabsize=2
+}
+
+%"mystyle" code listing set
+\lstset{style=mystyle}
+
+\begin{document}
+
+
+\maketitle
+
+\newpage
+
+\tableofcontents
+
+\newpage
+
+\section{Общий принцип}
+
+Мы будем рассматривать двухуровневое тестирование. Оно заключается в том, что мы судим о подтверждении гипотезы не из одного набора сэмплов и 1 p-value, а генерируем n набором сэмплов, получаем n p-value и при помощи теста Колмогорова-Смирнова проверяем соответствие полученного набор p-value равномерному распределению.
+
+Для проведения теста Колмогорова-Смирнова нужно посчитать некоторую статистику. 
+
+\begin{equation}
+    \lambda = \sup_{i=\overline{1, n}}|u_i(x)-F(x)| \cdot \sqrt{n}
+\end{equation}
+, где $n$ - количество сэмплов, $u_i(x)$ - i-ый сэмпл в точке x, F(x) - теоретическая функция распределения.
+
+По этой статистике уже можно понять (по общепринятым критическим значениям) проходит тест или нет, но также можно получить p-value, чтобы потом можно было опять провести тот же тест по ним. Для этого будем использовать асимптотическое приближение функции распределения Колмагорова.
+
+\begin{equation}
+    K(\lambda) = 1 - 2\sum_{k=1}^{\infty} (-1)^{k-1} e^{-2k^2\lambda^2}
+\end{equation}
+\begin{equation}
+    p\text{-value} = 1 - K(\lambda) = 2\sum_{k=1}^{\infty} (-1)^{k-1} e^{-2k^2\lambda^2}
+\end{equation}
+
+Он сходится очень быстро, около 4-5 итераций для точности 10 знаков.
+
+Реализация находится в модуля \texttt{testing}.
+
+\section{Верификация хи-квадрат}
+
+Проверим правда ли написанный нами генератор соответствует распределению хи-квадрат. Для этого на первом уровне посчитаем p-value при помощи теста Колмогорова-Смирнова, сравнив с теоретическим распределением хи-квадрат. А потом прогоним стандартный второй уровень теста.
+
+\subsection{Теоретический хи-квадрат}
+
+\begin{equation}
+    \chi^2(x, n) = \Gamma\left(\frac{n}{2}, \frac{x}{2}\right) = \frac{\gamma(n/2, x/2)}{\Gamma(n/2)}
+\end{equation}
+, где $n$ - порядок хи-квадрат распределения, $\Gamma(x, n)$ - Гамма-распределение,  $\Gamma(x)$ - Гамма-функция, $\gamma(n, x)$ - нижняя неполная Гамма-функция.
+
+Обе Гамма-функции определяются рекуррентно
+
+\begin{equation}
+\begin{gathered}
+    \Gamma(x+1) = x \cdot \Gamma(x) \overset{x \in \mathbb{N} }{=} x! \\
+    \gamma(x+1, n) = x \cdot \gamma(x, n) - n^x e^{-n}
+\end{gathered}
+\end{equation}
+
+Благодаря этому при помощи индукции можно доказать следующие формулы
+
+n - чётное
+\begin{equation}
+    \chi^2(x, n) = 1 - e^{-x/2} \sum_{i=0}^{\frac{n}{2}-1} \frac{(x/2)^i}{i!}
+    \label{eq:chi2_2n}
+\end{equation}
+
+n - нечётное
+\begin{equation}
+    \chi^2(x, n) = \text{erf}\left(\sqrt{\frac{x}{2}}\right) - e^{-x/2} \sqrt{\frac{2}{\pi}} \sum_{i=0}^{\frac{n-3}{2}} \frac{(x/2)^{i+0.5}}{\Gamma(i + 1.5)}
+    \label{eq:chi2_2n_1_temp}
+\end{equation}
+
+Используя соотношение
+
+\begin{equation}
+    \Gamma(n + \frac{1}{2}) = \frac{(2n-1)!!}{2^n}\cdot\sqrt{\pi}
+\end{equation}
+
+Можно преобразовать формулу (\ref{eq:chi2_2n_1_temp})
+
+\begin{equation}
+    \chi^2(x, n) = \text{erf}\left(\sqrt{\frac{x}{2}}\right) - e^{-x/2} \cdot \frac{2}{\pi} \cdot \sum_{i=0}^{\frac{n-3}{2}} \frac{x^{i+0.5}}{(2i+1)!!}
+    \label{eq:chi2_2n_1}
+\end{equation}
+
+Как можно видеть в формулах (\ref{eq:chi2_2n}) и (\ref{eq:chi2_2n_1}) числитель и знаменатель очень быстро растут и при $i \gtrsim 100$ мы получим переполнение. Чтобы этого избежать будем накапливать в отдельное переменной их отношение.
+
+Выражение для (\ref{eq:chi2_2n})
+
+\begin{equation}
+\begin{gathered}
+    \texttt{term}_0 = 1 \\
+    \texttt{term}_{i+1} = \texttt{term}_i \cdot \frac{ \frac{x}{2}}{i}
+\end{gathered}
+\end{equation}
+
+и для (\ref{eq:chi2_2n_1})
+
+\begin{equation}
+\begin{gathered}
+    \texttt{term}_0 = \sqrt{x} \\
+    \texttt{term}_{i+1} = \texttt{term}_i \cdot \frac{x}{2 \cdot i + 1}
+\end{gathered}
+\end{equation}
+
+Реализация находится в модуле \texttt{generators}, файл \texttt{ChiSquareGen}
+
+\subsection{Оптимизации}
+
+Каждый первый уровень считается независимо от другого. Наталкивает на идею распараллелить вычисления. Было решено использовать OpenMP, как самый лёгкий и доступный метод. К циклу расчёта приписываемый прагму
+
+\begin{lstlisting}
+#pragma omp parallel for schedule(dynamic)
+\end{lstlisting}
+
+Итерации буду динамически распределяться по потокам. Теперь мы не можем использовать один генератор случайных чисел и единственный сид. Поэтому будем конструировать \texttt{n\_lvl2} сидов (да, это излишнее количество, конечно у нас не так много процессов будет, но это не так уж и долго на фоне асимптотики вложенного цикла) и на каждой итерации инициализировать генератор своим сидом (при этом детерминировано зависящим от изначального заданного пользователем).
+
+\section{Верификация генератора последовательности случайных битов (ГПСБ)}
+
+Проверим стандартный генератор С++, основный на алгоритме mersenne twister на независимость при помощи теста на автокорреляцию. Для этого на первом уровне будем генерировать последовательность битов длиной \texttt{n\_lvl1}, считать автокорреляцию с заданным лагом, а после вычислять p-value подставляя значение в функцию биномиального распределения (или нормального, при большом количестве битов).
+
+\subsection{Теоретическое распределение}
+
+Биномиальное распределение вычисляется по формуле
+
+\begin{equation}
+\texttt{Binom}(x, n, p) = \binom{n}{x} \cdot p^n \cdot (1 - p)^{n-x} = \frac{n! \cdot p^n \cdot (1 - p)^{n-x}}{(n-x)! \cdot x!}
+\end{equation}
+
+Опять же, если мы посчитаем факториалы напрямую, они будут большими, поэтому будем использовать рекурентное соотношение.
+
+\begin{equation}
+\begin{gathered}
+    \texttt{Binom}(0, n, p) = (1-p)^n \\
+    \texttt{Binom}(x, n, p) = \texttt{Binom}(x - 1, n, p) \cdot \frac{n - k + 1}{k} \cdot \frac{p}{1-p}
+\end{gathered}
+\end{equation}
+
+Но при больших n мы все равно не сможем корректно сохранить начальной значение, оно обнулится. Поэтому будем использовать нормальное распределение
+
+\begin{equation}
+    \texttt{N}(x, \mu, \sigma) = \texttt{N}(x=\frac{x -  \mu}{\sigma}, 0, 1) = \frac{1 + \texttt{erf}(\frac{x}{\sqrt{2}})}{2} \\
+\end{equation}
+
+\subsection{Автокорреляция}
+
+Нам нужно как-то хранить длинную последовательность бит. В стандартные числа у нас может поместиться только 64 бита. В \texttt{C++} существует \texttt{bitset}, но его размер задаётся константой времени компиляции. Не хотелось бы компилировать всю программу заново, чтобы поменять размер битовых последовательностей. В библиотеке \texttt{boost} лежит динамический \texttt{bitset}, но мне кажется это слишком тяжёлая зависимость для такой маленькой задачи, поэтому я решил использовать \texttt{vector<uint64\_t>}, хоть его и неудобно обрабатывать и это будет немного дольше.
+
+Нам нужно сдвинуть битовую последовательность к младшим разрядам на \texttt{lag}, а после сделать побитовое исключающее или с исходной последовательностью. Количество единиц в получившейся битовой последовательности, за исключение после \texttt{lag} битов, и является значением автокорреляции. 
+
+Так как мы не можем сдвинуть массив целиком, то для каждого числа будем искать индекс соответствующего ему сдвинутого числа и делать xor. Если lag не кратен 64, то нужно будет получить число из 2 соседствующих битовыми операциями. 
+
+\section{Результаты}
+
+Были запущено по 50 тестов с разными сидами на каждую конфигурацию (Таблица. \ref{tab:test_parameters}).
+
+\begin{table}[h!]
+\centering
+\caption{Параметры проведения тестов}
+\label{tab:test_parameters}
+\renewcommand{\arraystretch}{1.3}
+\begin{tabular}{|l|c|c|c|l|}
+\hline
+\textbf{Тест} & \textbf{\makecell{Итерации \\ 1-го уровня}} & \textbf{\makecell{Итерации \\ 2-го уровня}} & \textbf{\makecell{Длина \\ последовательности}} & \textbf{Параметр теста} \\
+\hline
+\multirow{2}{*}{Хи-квадрат} 
+    & \multirow{2}{*}{10\,000} & \multirow{2}{*}{10\,000} & \multirow{2}{*}{---} & порядок 5 \\
+\cline{5-5}
+    & & & & порядок 50 \\
+\hline
+\multirow{3}{*}{ГПСБ} 
+    & \multirow{3}{*}{---} & \multirow{3}{*}{10\,000} & \multirow{3}{*}{1000} & lag = 1 \\
+\cline{5-5}
+    & & & & lag = 10 \\
+\cline{5-5}
+    & & & & lag = 200 \\
+\hline
+\end{tabular}
+\end{table}
+
+Результаты тестирования можно посмотреть в папке \texttt{tests}. В каждом наборе тестов было найдено 1-2 p-value значения < 0.01 или > 0.99. Можно объяснить это случайными выбросами. Все остальные значения получились в рамках нормы, из чего можно судить о корректности генерации чисел хи-квадрат распределения, и о корректности теста автокорреляцией (так как стандартная библиотека уже протестирована, её можно принять за эталон, а после при помощи данной батареи проверять другие ГПСБ).
+
+
+\end{document}

@@ -7,7 +7,7 @@
 
 | Зависимость           | Минимальная версия    | Назначение                                    |
 |-----------------------|-----------------------|-----------------------------------------------|
-| **Make**              | 4.3                   | Сборка проекта и зависимостей                 |
+| **make**              | 4.3                   | Сборка проекта и зависимостей                 |
 | **g++**               | 11.4                  | Компиляция C++20 кода                         |
 
 ### Использование
@@ -38,9 +38,9 @@ Options:
 
 | Зависимость           | Минимальная версия    | Назначение                                    |
 |-----------------------|-----------------------|-----------------------------------------------|
-| **Make**              | 4.3                   | Сборка проекта и зависимостей                 |
+| **make**              | 4.3                   | Сборка проекта и зависимостей                 |
 | **g++**               | 11.4                  | Компиляция C++20 кода                         |
-| **Python3**           | 3.10                  | Построение графиков                           |
+| **python3**           | 3.10                  | Построение графиков                           |
 | **numpy**             | 2.2.6                 | Построение графиков                           |
 | **matplotlib**        | 3.10.6                | Построение графиков                           |
 | **scipy**             | 1.15.3                | Построение графиков                           |
@@ -61,14 +61,18 @@ Options:
 
 ```bash
 $ make gen OPTS="--help"
-./hi_quad.out --help
 Usage: hi_quad.out [OPTIONS]
 Options:
-  -o, --output <FILE>       Specify output file (default: data.json)
-  -s, --seed <VALUE>        Specify random seed (default: random)
-  -d, --degree <VALUE>      Specify degree of chi-square (default: 5)
-  -n, --iters_cnt <VALUE>   Specify iterations count (default: 1000000)
-  -h, --help                Show this help message
+  -m, --mode <MODE_NAME>     Specify execution mode (Chi2Export, TestChi2, TestRng) (default: Chi2Export)
+  -o, --output <FILE>        Specify output file (default: data.json)
+  -s, --seed <VALUE>         Specify random seed (default: random)
+  -d, --degree <VALUE>       Specify degree of chi-square (default: 5)
+  -n1,--n_lvl1 <VALUE>       Specify p-value count (default: 10000)
+  -n2,--n_lvl2 <VALUE>       Specify iterations count for 1 p-value (default: 10000)
+  -l, --lag    <VALUE>       Specify lag for autocorelation test RNG (default: 2000)  
+  -t, --tests_cnt <VALUE>    Specify tests count (default: 10)
+  -v, --verbose              Output exectuion progress
+  -h, --help                 Show this help message
 ```
 ```bash
 $ make plot PY_OPTS="--help"
@@ -110,3 +114,11 @@ F_{LN}(x, a, \sigma)  &= F_{N}(\ln x, a, \sigma) - \text{функции расп
                       &= \int_{0}^{x} \frac{1}{y\sigma\sqrt{2\pi}} e^{-\frac{(\ln y - a)^2}{2\sigma^2}} dy
 \end{aligned}
 $$
+
+## 6
+
+Это задача на тестирование генераторов случайных чисел. Мы такой писал в 5 задаче, поэтому все исходники лежат в этой же папке.
+
+Реализовано двухуровневое тестирование на основе Колмогорова-Смирнова, а также автокорреляции. Отчёт о проведённом тестировании находится в папке ```report```.
+
+Зависимости и использование смотреть [здесь](#5).
