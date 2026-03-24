@@ -6,6 +6,7 @@
 #include <functional>
 #include <random>
 #include <omp.h>
+#include <sstream>
 #include <stdexcept>
 #include <cstdint>
 
@@ -186,6 +187,30 @@ void TestingRng(const CliParser::Options& opts, std::ostream& out, uint64_t seed
 
 //-----------------------------------------HELPERS--------------------------------------------------
 
+
+std::vector<uint64_t> parse_mt19937(std::stringstream& ss, size_t max_count) {
+
+    std::vector<uint64_t> samples(max_count, 0);
+    
+    uint32_t value;
+    for (size_t i = 0; i < max_count; ++i) {
+        if (!(ss >> value)) {
+            break;
+        }
+
+        samples[i] |= (static_cast<uint64_t>(value) << 32);
+
+        if (!(ss >> value)) {
+            break;
+        }
+
+        samples[i] |= static_cast<uint64_t>(value);
+    }
+    
+    return samples;
+}
+
+
 void TestRng(std::ostream& out, uint64_t seed, size_t n_lvl2, size_t n_lvl1, size_t lag) {
     const uint64_t master_seed = seed;
 
@@ -214,28 +239,19 @@ void TestRng(std::ostream& out, uint64_t seed, size_t n_lvl2, size_t n_lvl1, siz
     std::seed_seq seed_seq{static_cast<uint32_t>(master_seed), static_cast<uint32_t>(master_seed >> 32)};  
     seed_seq.generate(seeds.begin(), seeds.end());
 
-    #pragma omp parallel for schedule(dynamic)
+    // #pragma omp parallel for schedule(dynamic)
     for (size_t i = 0; i < n_lvl2; ++i) {
         std::mt19937 gen{seeds[i]};
         std::bernoulli_distribution dist(0.5);
 
-        std::vector<uint64_t> samples(n_lvl1);
-        
-        for (size_t j = 0; j < n_lvl1; ++j) {
-            uint64_t sample = 0;
-            for (size_t bit_ind = 0; bit_ind < sizeof(uint64_t) * CHAR_BIT; ++bit_ind) {
-                sample |= static_cast<uint64_t>(dist(gen)) << bit_ind;
-            }
-            samples[j] = sample;
-        }
+        std::stringstream ss;
+        ss << gen; 
+
+        std::vector<uint64_t> samples = parse_mt19937(ss, n_lvl1);
 
         uint64_t stat = Autocorrelation::computeStatistic(samples, lag);
 
-        // std::cerr << "stat " << stat << std::endl;
-
         p_values[i] = calc_p_value(static_cast<double>(stat));
-
-        // std::cerr << "p_values[i] " << p_values[i] << std::endl;
 
     }
 
