@@ -215,7 +215,7 @@ void TestRng(std::ostream& out, uint64_t seed, size_t n_lvl2, size_t n_lvl1, siz
     std::seed_seq seed_seq{static_cast<uint32_t>(master_seed), static_cast<uint32_t>(master_seed >> 32)};  
     seed_seq.generate(seeds.begin(), seeds.end());
 
-    // #pragma omp parallel for schedule(dynamic)
+    #pragma omp parallel for schedule(dynamic)
     for (size_t i = 0; i < n_lvl2; ++i) {
         std::mt19937 gen{seeds[i]};
         
