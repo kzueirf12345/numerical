@@ -1,0 +1,3 @@
+[submodule "7/libs/logger"]
+	path = 7/libs/logger
+	url = https://github.com/kzueirf12345/logger.git
