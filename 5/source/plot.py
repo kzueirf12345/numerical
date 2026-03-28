@@ -1,7 +1,8 @@
 import json
 import numpy as np
 import matplotlib.pyplot as plt
-from scipy.stats import chi2
+import scipy
+from scipy.stats import chi2, binom
 from pathlib import Path
 import argparse
 
@@ -170,6 +171,7 @@ def main():
         output_path=args.output,
         n_bins=args.bins
     )
+
     
     return 0
 

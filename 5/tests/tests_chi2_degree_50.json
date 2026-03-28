@@ -1,0 +1,407 @@
+{
+"seed": 1627663343,
+"name": "TestsChi2",
+"description": "Two-pass test Chi2 generator with base RNG mt19937. Сompute p-values by Kolmagorov statistic, and final p-value with this p-values",
+"tests": [
+{
+	"name": "TestChi2",
+	"n_lvl1": 10000,
+	"n_lvl2": 10000,
+	"degree": 50,
+	"seed": 3731687486,
+	"final_p_value": 0.0403896
+},
+{
+	"name": "TestChi2",
+	"n_lvl1": 10000,
+	"n_lvl2": 10000,
+	"degree": 50,
+	"seed": 1497194709,
+	"final_p_value": 0.0323985
+},
+{
+	"name": "TestChi2",
+	"n_lvl1": 10000,
+	"n_lvl2": 10000,
+	"degree": 50,
+	"seed": 1759853687,
+	"final_p_value": 0.649966
+},
+{
+	"name": "TestChi2",
+	"n_lvl1": 10000,
+	"n_lvl2": 10000,
+	"degree": 50,
+	"seed": 1440174397,
+	"final_p_value": 0.12183
+},
+{
+	"name": "TestChi2",
+	"n_lvl1": 10000,
+	"n_lvl2": 10000,
+	"degree": 50,
+	"seed": 2903004210,
+	"final_p_value": 0.0373063
+},
+{
+	"name": "TestChi2",
+	"n_lvl1": 10000,
+	"n_lvl2": 10000,
+	"degree": 50,
+	"seed": 845400021,
+	"final_p_value": 0.892244
+},
+{
+	"name": "TestChi2",
+	"n_lvl1": 10000,
+	"n_lvl2": 10000,
+	"degree": 50,
+	"seed": 1479448522,
+	"final_p_value": 0.173565
+},
+{
+	"name": "TestChi2",
+	"n_lvl1": 10000,
+	"n_lvl2": 10000,
+	"degree": 50,
+	"seed": 3754689166,
+	"final_p_value": 0.861764
+},
+{
+	"name": "TestChi2",
+	"n_lvl1": 10000,
+	"n_lvl2": 10000,
+	"degree": 50,
+	"seed": 2927710477,
+	"final_p_value": 0.916903
+},
+{
+	"name": "TestChi2",
+	"n_lvl1": 10000,
+	"n_lvl2": 10000,
+	"degree": 50,
+	"seed": 1278615724,
+	"final_p_value": 0.00344756
+},
+{
+	"name": "TestChi2",
+	"n_lvl1": 10000,
+	"n_lvl2": 10000,
+	"degree": 50,
+	"seed": 2385553369,
+	"final_p_value": 0.435778
+},
+{
+	"name": "TestChi2",
+	"n_lvl1": 10000,
+	"n_lvl2": 10000,
+	"degree": 50,
+	"seed": 743363150,
+	"final_p_value": 0.233647
+},
+{
+	"name": "TestChi2",
+	"n_lvl1": 10000,
+	"n_lvl2": 10000,
+	"degree": 50,
+	"seed": 158331326,
+	"final_p_value": 0.263358
+},
+{
+	"name": "TestChi2",
+	"n_lvl1": 10000,
+	"n_lvl2": 10000,
+	"degree": 50,
+	"seed": 2543283209,
+	"final_p_value": 0.20057
+},
+{
+	"name": "TestChi2",
+	"n_lvl1": 10000,
+	"n_lvl2": 10000,
+	"degree": 50,
+	"seed": 3371778142,
+	"final_p_value": 0.176635
+},
+{
+	"name": "TestChi2",
+	"n_lvl1": 10000,
+	"n_lvl2": 10000,
+	"degree": 50,
+	"seed": 1235353552,
+	"final_p_value": 0.276439
+},
+{
+	"name": "TestChi2",
+	"n_lvl1": 10000,
+	"n_lvl2": 10000,
+	"degree": 50,
+	"seed": 1815474085,
+	"final_p_value": 0.741361
+},
+{
+	"name": "TestChi2",
+	"n_lvl1": 10000,
+	"n_lvl2": 10000,
+	"degree": 50,
+	"seed": 2708880258,
+	"final_p_value": 0.702178
+},
+{
+	"name": "TestChi2",
+	"n_lvl1": 10000,
+	"n_lvl2": 10000,
+	"degree": 50,
+	"seed": 1012703270,
+	"final_p_value": 0.570199
+},
+{
+	"name": "TestChi2",
+	"n_lvl1": 10000,
+	"n_lvl2": 10000,
+	"degree": 50,
+	"seed": 4135365424,
+	"final_p_value": 0.909296
+},
+{
+	"name": "TestChi2",
+	"n_lvl1": 10000,
+	"n_lvl2": 10000,
+	"degree": 50,
+	"seed": 4008778513,
+	"final_p_value": 0.360011
+},
+{
+	"name": "TestChi2",
+	"n_lvl1": 10000,
+	"n_lvl2": 10000,
+	"degree": 50,
+	"seed": 2796233810,
+	"final_p_value": 0.584434
+},
+{
+	"name": "TestChi2",
+	"n_lvl1": 10000,
+	"n_lvl2": 10000,
+	"degree": 50,
+	"seed": 326394522,
+	"final_p_value": 0.0513743
+},
+{
+	"name": "TestChi2",
+	"n_lvl1": 10000,
+	"n_lvl2": 10000,
+	"degree": 50,
+	"seed": 2479326428,
+	"final_p_value": 0.00180936
+},
+{
+	"name": "TestChi2",
+	"n_lvl1": 10000,
+	"n_lvl2": 10000,
+	"degree": 50,
+	"seed": 185276784,
+	"final_p_value": 0.102493
+},
+{
+	"name": "TestChi2",
+	"n_lvl1": 10000,
+	"n_lvl2": 10000,
+	"degree": 50,
+	"seed": 3252468011,
+	"final_p_value": 0.270961
+},
+{
+	"name": "TestChi2",
+	"n_lvl1": 10000,
+	"n_lvl2": 10000,
+	"degree": 50,
+	"seed": 2817376365,
+	"final_p_value": 0.00179448
+},
+{
+	"name": "TestChi2",
+	"n_lvl1": 10000,
+	"n_lvl2": 10000,
+	"degree": 50,
+	"seed": 3566727112,
+	"final_p_value": 0.813113
+},
+{
+	"name": "TestChi2",
+	"n_lvl1": 10000,
+	"n_lvl2": 10000,
+	"degree": 50,
+	"seed": 3729720296,
+	"final_p_value": 0.539622
+},
+{
+	"name": "TestChi2",
+	"n_lvl1": 10000,
+	"n_lvl2": 10000,
+	"degree": 50,
+	"seed": 1425665758,
+	"final_p_value": 0.00620371
+},
+{
+	"name": "TestChi2",
+	"n_lvl1": 10000,
+	"n_lvl2": 10000,
+	"degree": 50,
+	"seed": 1381210519,
+	"final_p_value": 0.486307
+},
+{
+	"name": "TestChi2",
+	"n_lvl1": 10000,
+	"n_lvl2": 10000,
+	"degree": 50,
+	"seed": 2369762590,
+	"final_p_value": 0.280656
+},
+{
+	"name": "TestChi2",
+	"n_lvl1": 10000,
+	"n_lvl2": 10000,
+	"degree": 50,
+	"seed": 3479579993,
+	"final_p_value": 0.0809645
+},
+{
+	"name": "TestChi2",
+	"n_lvl1": 10000,
+	"n_lvl2": 10000,
+	"degree": 50,
+	"seed": 1663234360,
+	"final_p_value": 0.432966
+},
+{
+	"name": "TestChi2",
+	"n_lvl1": 10000,
+	"n_lvl2": 10000,
+	"degree": 50,
+	"seed": 1521452125,
+	"final_p_value": 0.798589
+},
+{
+	"name": "TestChi2",
+	"n_lvl1": 10000,
+	"n_lvl2": 10000,
+	"degree": 50,
+	"seed": 2187191629,
+	"final_p_value": 0.251317
+},
+{
+	"name": "TestChi2",
+	"n_lvl1": 10000,
+	"n_lvl2": 10000,
+	"degree": 50,
+	"seed": 502956058,
+	"final_p_value": 0.709512
+},
+{
+	"name": "TestChi2",
+	"n_lvl1": 10000,
+	"n_lvl2": 10000,
+	"degree": 50,
+	"seed": 4265483253,
+	"final_p_value": 0.775285
+},
+{
+	"name": "TestChi2",
+	"n_lvl1": 10000,
+	"n_lvl2": 10000,
+	"degree": 50,
+	"seed": 2780202977,
+	"final_p_value": 0.0273583
+},
+{
+	"name": "TestChi2",
+	"n_lvl1": 10000,
+	"n_lvl2": 10000,
+	"degree": 50,
+	"seed": 2167785178,
+	"final_p_value": 0.0984837
+},
+{
+	"name": "TestChi2",
+	"n_lvl1": 10000,
+	"n_lvl2": 10000,
+	"degree": 50,
+	"seed": 964716234,
+	"final_p_value": 0.115085
+},
+{
+	"name": "TestChi2",
+	"n_lvl1": 10000,
+	"n_lvl2": 10000,
+	"degree": 50,
+	"seed": 1551560697,
+	"final_p_value": 0.605697
+},
+{
+	"name": "TestChi2",
+	"n_lvl1": 10000,
+	"n_lvl2": 10000,
+	"degree": 50,
+	"seed": 2575413237,
+	"final_p_value": 0.077849
+},
+{
+	"name": "TestChi2",
+	"n_lvl1": 10000,
+	"n_lvl2": 10000,
+	"degree": 50,
+	"seed": 424265496,
+	"final_p_value": 0.374986
+},
+{
+	"name": "TestChi2",
+	"n_lvl1": 10000,
+	"n_lvl2": 10000,
+	"degree": 50,
+	"seed": 1257552758,
+	"final_p_value": 0.021778
+},
+{
+	"name": "TestChi2",
+	"n_lvl1": 10000,
+	"n_lvl2": 10000,
+	"degree": 50,
+	"seed": 1696755741,
+	"final_p_value": 0.55301
+},
+{
+	"name": "TestChi2",
+	"n_lvl1": 10000,
+	"n_lvl2": 10000,
+	"degree": 50,
+	"seed": 1387425670,
+	"final_p_value": 0.366047
+},
+{
+	"name": "TestChi2",
+	"n_lvl1": 10000,
+	"n_lvl2": 10000,
+	"degree": 50,
+	"seed": 3479342501,
+	"final_p_value": 0.266303
+},
+{
+	"name": "TestChi2",
+	"n_lvl1": 10000,
+	"n_lvl2": 10000,
+	"degree": 50,
+	"seed": 165305969,
+	"final_p_value": 0.0529588
+},
+{
+	"name": "TestChi2",
+	"n_lvl1": 10000,
+	"n_lvl2": 10000,
+	"degree": 50,
+	"seed": 1967388966,
+	"final_p_value": 0.499877
+}
+]
+}
