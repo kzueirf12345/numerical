@@ -27,12 +27,12 @@ const char* flags_strerror(const enum FlagsError error);
 
 typedef struct FlagsObjs
 {
-    char log_folder [FILENAME_MAX + 1];
+    char log_folder  [FILENAME_MAX + 1];
+    char out_filename[FILENAME_MAX + 1];
 
-    // char in_filename[FILENAME_MAX + 1];
-    // char out_filename[FILENAME_MAX + 1];
+    FILE* out;
 
-    // FILE* out;
+    unsigned int seed;
 
 } flags_objs_t;
 

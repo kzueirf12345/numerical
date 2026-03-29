@@ -1,7 +1,9 @@
 #include "flags/flags.h"
 
+#include <stdio.h>
 #include <string.h>
 #include <getopt.h>
+#include <time.h>
 
 #include "logger/liblogger.h" // IWYU pragma: keep
 #include "utils/utils.h"
@@ -31,19 +33,15 @@ enum FlagsError flags_objs_ctor(flags_objs_t* const flags_objs)
         return FLAGS_ERROR_SUCCESS;
     }
 
-    // if (!strncpy(flags_objs->in_filename, "../assets/input.msk", FILENAME_MAX))
-    // {
-    //     perror("Can't strncpy flags_objs->in_filename");
-    //     return FLAGS_ERROR_SUCCESS;
-    // }
+    if (!strncpy(flags_objs->out_filename, "STDOUT", FILENAME_MAX))
+    {
+        perror("Can't strncpy flags_objs->in_filename");
+        return FLAGS_ERROR_SUCCESS;
+    }
 
-    // if (!strncpy(flags_objs->out_filename, "../assets/front_out.txt", FILENAME_MAX))
-    // {
-    //     perror("Can't strncpy flags_objs->in_filename");
-    //     return FLAGS_ERROR_SUCCESS;
-    // }
+    flags_objs->out = NULL;
 
-    // flags_objs->out = NULL;
+    flags_objs->seed = (unsigned int)time(NULL);
 
     return FLAGS_ERROR_SUCCESS;
 }
@@ -52,11 +50,11 @@ enum FlagsError flags_objs_dtor (flags_objs_t* const flags_objs)
 {
     lassert(!is_invalid_ptr(flags_objs), "");
 
-    // if (flags_objs->out && fclose(flags_objs->out))
-    // {
-    //     perror("Can't fclose out file");
-    //     return FLAGS_ERROR_FAILURE;
-    // }
+    if (flags_objs->out && flags_objs->out != stdout && fclose(flags_objs->out))
+    {
+        perror("Can't fclose out file");
+        return FLAGS_ERROR_FAILURE;
+    }
 
     return FLAGS_ERROR_SUCCESS;
 }
@@ -69,7 +67,7 @@ enum FlagsError flags_processing(flags_objs_t* const flags_objs,
     lassert(argc, "");
 
     int getopt_rez = 0;
-    while ((getopt_rez = getopt(argc, argv, "l:i:o:")) != -1)
+    while ((getopt_rez = getopt(argc, argv, "l:o:s:")) != -1)
     {
         switch (getopt_rez)
         {
@@ -83,26 +81,26 @@ enum FlagsError flags_processing(flags_objs_t* const flags_objs,
 
                 break;
             }
-            // case 'i':
-            // {
-            //     if (!strncpy(flags_objs->in_filename, optarg, FILENAME_MAX))
-            //     {
-            //         perror("Can't strncpy flags_objs->in_filename");
-            //         return FLAGS_ERROR_FAILURE;
-            //     }
+            case 'o':
+            {
+                if (!strncpy(flags_objs->out_filename, optarg, FILENAME_MAX))
+                {
+                    perror("Can't strncpy flags_objs->out_filename");
+                    return FLAGS_ERROR_FAILURE;
+                }
 
-            //     break;
-            // }
-            // case 'o':
-            // {
-            //     if (!strncpy(flags_objs->out_filename, optarg, FILENAME_MAX))
-            //     {
-            //         perror("Can't strncpy flags_objs->out_filename");
-            //         return FLAGS_ERROR_FAILURE;
-            //     }
+                break;
+            }
+            case 's':
+            {
+                if (sscanf(optarg, "%u", &flags_objs->seed) != 1)
+                {
+                    perror("Can't sscanf flags_objs->seed");
+                    return FLAGS_ERROR_FAILURE;
+                }
 
-            //     break;
-            // }
+                break;
+            }
 
             default:
             {
@@ -111,12 +109,16 @@ enum FlagsError flags_processing(flags_objs_t* const flags_objs,
             }
         }
     }
-    
-    // if (!(flags_objs->out = fopen(flags_objs->out_filename, "wb")))
-    // {
-    //     perror("Can't open out file");
-    //     return FLAGS_ERROR_FAILURE;
-    // }
+
+    if (strcmp(flags_objs->out_filename, "STDOUT") == 0) 
+    {
+        flags_objs->out = stdout;
+    }
+    else if (!(flags_objs->out = fopen(flags_objs->out_filename, "wb"))) 
+    {
+        perror("Can't open out file");
+        return FLAGS_ERROR_FAILURE;
+    }
 
     return FLAGS_ERROR_SUCCESS;
 }

@@ -27,7 +27,10 @@
 
 #endif /*NDEBUG*/
 
+static_assert(sizeof(float) == sizeof(uint32_t), "For bitcast");
+
 #define POISON_UINT32 (uint32_t)(0xDEADBEAFu)
+#define POISON_FLOAT  (*(float*)&(uint32_t){0xDEADBEAFu})
 
 #define INT_ERROR_HANDLE(call_func, ...)                                                            \
     do {                                                                                            \

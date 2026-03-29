@@ -14,7 +14,7 @@ ifeq ($(origin FLAGS), undefined)
 
 FLAGS =	-Wall -Wextra -Waggressive-loop-optimizations \
 		-Wmissing-declarations -Wcast-align -Wcast-qual -Wchar-subscripts \
-		-Wconversion -Wempty-body -Wfloat-equal \
+		-Wconversion -Wempty-body \
 		-Wformat-nonliteral -Wformat-security -Wformat-signedness -Wformat=2 -Winline -Wlogical-op \
 		-Wopenmp-simd -Wpacked -Wpointer-arith -Winit-self \
 		-Wredundant-decls -Wshadow -Wsign-conversion \

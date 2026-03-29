@@ -58,7 +58,7 @@ float vogf(float x) {
 
     const uint32_t xu = *(uint32_t*)&x;
 
-    if (xu & SIGN_MASK) { //negative
+    if ((xu & SIGN_MASK) && (x != 0.f)) { //negative
         errno = FE_INVALID;
         return FLOAT_QNAN;
     }
