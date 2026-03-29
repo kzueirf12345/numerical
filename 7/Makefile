@@ -43,13 +43,13 @@ endif
 
 FLAGS += $(ADD_FLAGS)
 
-LIBS = -lm -L./libs/logger -llogger
+LIBS = -lm -lmpfr -L./libs/logger -llogger 
 
 
-DIRS = flags utils
+DIRS = flags utils vogf
 BUILD_DIRS = $(DIRS:%=$(BUILD_DIR)/%)
 
-SOURCES = main.c flags/flags.c utils/utils.c
+SOURCES = main.c flags/flags.c utils/utils.c vogf/vogf.c
 
 SOURCES_REL_PATH = $(SOURCES:%=$(SRC_DIR)/%)
 OBJECTS_REL_PATH = $(SOURCES:%.c=$(BUILD_DIR)/%.o)

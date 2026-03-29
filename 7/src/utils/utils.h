@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <assert.h>
 #include <errno.h>
+#include <stdint.h>
 
 #define MAX(a, b) (((a) > (b)) ? (a) : (b))
 #define MIN(a, b) (((a) < (b)) ? (a) : (b))
@@ -26,6 +27,7 @@
 
 #endif /*NDEBUG*/
 
+#define POISON_UINT32 (uint32_t)(0xDEADBEAFu)
 
 #define INT_ERROR_HANDLE(call_func, ...)                                                            \
     do {                                                                                            \
