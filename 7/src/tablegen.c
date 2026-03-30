@@ -3,7 +3,7 @@
 #include <mpfr.h>
 #include <unistd.h>
 // L1d = 2^18 byte = 2^15 double (reserve 2^15/2/2= 2^13)
-#define K (12u)
+#define K (10u)
 
 int main() {
     const size_t size = (1u << K);

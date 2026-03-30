@@ -156,6 +156,8 @@ int test_vogf(
 
     int npassed_cnt = 0;
 
+    float max_ulp_error = 0;
+
     for (size_t test_ind = 0; test_ind < tests_size; ++test_ind) {
         const float test_num = tests[test_ind];
 
@@ -167,6 +169,8 @@ int test_vogf(
         const double expected = mpfr_get_d(res_mpfr, MPFR_RNDN);
 
         const float ulp_error = calculate_ulp_diff(res_vogf, expected);
+
+        max_ulp_error = MAX(ulp_error, max_ulp_error);
 
         if (!only_incorrect || ulp_error > CRITICAL_ULP_ERROR_) {
             fprintf(
@@ -213,6 +217,13 @@ int test_vogf(
         else {
             fprintf(output, "%d TESTS NOT PASSED!!!\n", npassed_cnt);
         }
+    }
+
+    if (colored_text_supported) {
+        fprintf(output, YELLOW_TEXT("Max ULP error: %.1f\n"), max_ulp_error);
+    }
+    else {
+        fprintf(output, "Max ULP error: %.1f\n", max_ulp_error);
     }
 
     return npassed_cnt;

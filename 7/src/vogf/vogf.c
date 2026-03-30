@@ -23,7 +23,7 @@ static_assert(sizeof(float) == sizeof(uint32_t), "Operands must have the same si
 #define LN2_ (0.693147180559945309417232121458)
 
 #define FLOAT_C1 (1)
-#define FLOAT_C2 (-0.5)
+#define FLOAT_C2 (-0.499925) // test 0.999999f
 #define FLOAT_C3 (0.3333333432674407958984375)
 
 //==============================HELPERS=============================================================
@@ -78,11 +78,11 @@ float vogf(float x) {
         case FLOAT_CLASS_INFINITY: // neg infinity check in neg
             return FLOAT_POS_INF;
         case FLOAT_CLASS_DENORMAL:
-            x *= (float)(1u << MANT_SIZE);
+            x *= (float)(1u << MANT_SIZE); // make normal
             xu = *(uint32_t*)&x;
             exp = (xu & EXP_MASK) >> MANT_SIZE;
             mant = xu & MANT_MASK;
-            extra_pow = -23;
+            extra_pow = -(int32_t)MANT_SIZE;
         case FLOAT_CLASS_NORMAL:
         default:
             break;
