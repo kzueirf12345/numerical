@@ -23,7 +23,7 @@ FLAGS =	-Wall -Wextra -Waggressive-loop-optimizations \
 		-Wundef -Wunreachable-code -Wunused -Wvariadic-macros \
 		-Wno-missing-field-initializers -Wno-narrowing -Wno-varargs \
 		-Wstack-protector -fcheck-new -fstack-protector -fstrict-overflow \
-		-fno-omit-frame-pointer -Wlarger-than=81920 -Wstack-usage=81920 -pie \
+		-fno-omit-frame-pointer -pie \
 		-fPIE -Werror=vla \
 
 # SANITIZER = -fsanitize=address,alignment,bool,bounds,enum,float-cast-overflow,float-divide-by-zero,$\
@@ -64,6 +64,10 @@ start:
 build: $(PROJECT_NAME).out
 
 rebuild: clean_all build
+
+tablegen:
+	$(COMPILER) $(SRC_DIR)/tablegen.c -o tablegen.out -lmpfr;
+	./tablegen.out > $(SRC_DIR)/vogf/tables.h
 
 
 $(PROJECT_NAME).out: $(OBJECTS_REL_PATH)

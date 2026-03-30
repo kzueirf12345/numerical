@@ -3,6 +3,7 @@
 
 #include <assert.h>
 #include <stdio.h>
+#include <stdbool.h>
 
 enum FlagsError
 {
@@ -33,6 +34,8 @@ typedef struct FlagsObjs
     FILE* out;
 
     unsigned int seed;
+
+    bool only_incorrect;
 
 } flags_objs_t;
 

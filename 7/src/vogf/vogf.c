@@ -5,26 +5,26 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <errno.h>
+#include <stdlib.h>
+
+#include "tables.h"
 
 static_assert(sizeof(float) == sizeof(uint32_t), "Operands must have the same size");
 
 //==============================CONSTANTS===========================================================
 #define FLOAT_OFFSET_ (127u)
 #define MANT_SIZE (23u)
-#define MANT_MASK 0x7FFFFFu
+#define MANT_MASK (0x7FFFFFu)
 #define EXP_SIZE (8u)
 #define EXP_MASK (0xFFu << MANT_SIZE)
 #define SIGN_SIZE (1u)
 #define SIGN_MASK (1u << (MANT_SIZE + EXP_SIZE))
 
-#define LN2_ (0.693147180559945309417232121458f)
+#define LN2_ (0.693147180559945309417232121458)
 
-#define FLOAT_C1 (0.999991595745086669921875f)
-#define FLOAT_C2 (-0.499361336231231689453125f)
-#define FLOAT_C3 (0.325206577777862548828125f)
-#define FLOAT_C4 (-0.21004854142665863037109375f)
-#define FLOAT_C5 (0.10122220218181610107421875f)
-#define FLOAT_C6 (-0.02386914193630218505859375f)
+#define FLOAT_C1 (1)
+#define FLOAT_C2 (-0.5)
+#define FLOAT_C3 (0.3333333432674407958984375)
 
 //==============================HELPERS=============================================================
 
@@ -93,19 +93,15 @@ ln(x)=ln(mant*2^pow)=ln(mant)+ln(2^pow)=ln(mant)+pow⋅ln(2)
     const uint32_t normal_mantu = (FLOAT_OFFSET_ << MANT_SIZE) | mant; // [1, 2)
     const float normal_mant = *(const float*)(&normal_mantu);
 
-    const float f = normal_mant - 1.f;
+    const size_t ind = mant >> (MANT_SIZE - TABLE_BIT_CNT);
+
+    const double r = (double)R_TABLE[ind] * (double)normal_mant - 1.; // use double because near 1 float accuracy is not enough
 
 //---------------------------------------POLYNOM----------------------------------------------------
 
-    float p = f * (FLOAT_C1 + f * (FLOAT_C2 + f * (FLOAT_C3 + f * (FLOAT_C4 + f * FLOAT_C5))));
+    double p = r * (FLOAT_C1 + r * (FLOAT_C2 + r * FLOAT_C3));
 
 //---------------------------------------RECONSTRUCTION---------------------------------------------
 
-    return (float)x_pow * LN2_ + p; // TODO Lookup table
+    return (float)((double)x_pow * LN2_ + T_TABLE[ind] + p);
 }
-
-/*!SECTION
-
-fpminimax(log1p(x), [|1,2,3,4,5,6|], [|single, single, single, single, single, single|], [0, 1]);
-
-*/

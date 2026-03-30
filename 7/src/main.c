@@ -17,7 +17,8 @@ int test_vogf(
     const float testcases[], 
     const size_t testcases_size, 
     const char* suite_name, 
-    FILE* const output
+    FILE* const output,
+    bool only_incorrect
 );
 
 static int init_all(flags_objs_t* const flags_objs, const int argc, char* const * argv);
@@ -27,7 +28,7 @@ static int dtor_all(flags_objs_t* const flags_objs);
 
 int main(const int argc, char* const argv[])
 {
-    flags_objs_t flags_objs  = {}; //TODO seed
+    flags_objs_t flags_objs  = {};
 
     INT_ERROR_HANDLE(init_all(&flags_objs, argc, argv));
 
@@ -60,12 +61,15 @@ int main(const int argc, char* const argv[])
 //Testcase2
 
     const char* const testcase2_name = "Testing random values";
-    float testcase2[100];
+    float testcase2[500000];
     const size_t testcase2_size = sizeof(testcase2) / sizeof(*testcase2);
 
     for (size_t test_ind = 0; test_ind < testcase2_size; ++test_ind) {
         static_assert(sizeof(float) == sizeof(int), "For bitcast");
         testcase2[test_ind] = (*(float*)&(int32_t){rand()});
+        while (fpclassify(testcase2[test_ind]) == FP_SUBNORMAL) {
+            testcase2[test_ind] = (*(float*)&(int32_t){rand()});
+        }
     }
 
 //Testing
@@ -73,10 +77,10 @@ int main(const int argc, char* const argv[])
     int npassed_cnt = 0;
     int res = 0;
 
-    res = test_vogf(testcase1, testcase1_size, testcase1_name, flags_objs.out);
+    res = test_vogf(testcase1, testcase1_size, testcase1_name, flags_objs.out, flags_objs.only_incorrect);
     npassed_cnt += (res != 0);
 
-    res = test_vogf(testcase2, testcase2_size, testcase2_name, flags_objs.out);
+    res = test_vogf(testcase2, testcase2_size, testcase2_name, flags_objs.out, flags_objs.only_incorrect);
     npassed_cnt += (res != 0);
 
     if (npassed_cnt == 0) {
@@ -135,7 +139,8 @@ int test_vogf(
     const float tests[], 
     const size_t tests_size, 
     const char* testcase_name, 
-    FILE* const output
+    FILE* const output,
+    bool only_incorrect
 ) {
     lassert(!is_invalid_ptr(tests), "testcases array is not valid");
     lassert(tests_size > 0, "testcases size is zero");
@@ -166,11 +171,13 @@ int test_vogf(
 
         const float ulp_error = calculate_ulp_diff(res_vogf, expected);
 
-        fprintf(
-            output,
-            "x: %f | Vogf: %f | Expected: %f | ULP Error: %f\n", 
-            test_num, res_vogf, expected, ulp_error
-        );
+        if (!only_incorrect || ulp_error > CRITICAL_ULP_ERROR_) {
+            fprintf(
+                output,
+                "x: %.20f\t|\tVogf: %.20f\t|\t Expected: %.20f\t|\tULP Error: %.1f\n", 
+                test_num, res_vogf, (float)expected, ulp_error
+            );
+        }
 
         if (ulp_error > CRITICAL_ULP_ERROR_) {
             if (colored_text_supported) {
@@ -183,7 +190,7 @@ int test_vogf(
             else {
                 fprintf(
                     output,
-                    "ULP more then critical value %g. ULP: %g\n", 
+                    "ULP more then critical value %.1f. ULP: %.1f\n", 
                     CRITICAL_ULP_ERROR_, ulp_error
                 );
             }
