@@ -44,8 +44,8 @@ int main(const int argc, char* const argv[])
         0.0f, -0.0f, INFINITY, NAN, -1.0f, 1.0f, //special
         (*(float*)&(uint32_t){0x00800000u}),  // min normal
         (*(float*)&(uint32_t){0x7f7fffffu}),  // max normal
-        // (*(float*)&(uint32_t){0x007FFFFFu}),  // max denormal
-        // (*(float*)&(uint32_t){0x00000001u}),  // min denormal
+        (*(float*)&(uint32_t){0x007FFFFFu}),  // max denormal
+        (*(float*)&(uint32_t){0x00000001u}),  // min denormal
         2.f, 4.f, 0.5f, // 2^n
         1073741824.0f, // 2^30
         1.4142135f, 1.4142136f, // sqrt(2)
@@ -67,9 +67,6 @@ int main(const int argc, char* const argv[])
     for (size_t test_ind = 0; test_ind < testcase2_size; ++test_ind) {
         static_assert(sizeof(float) == sizeof(int), "For bitcast");
         testcase2[test_ind] = (*(float*)&(int32_t){rand()});
-        while (fpclassify(testcase2[test_ind]) == FP_SUBNORMAL) {
-            testcase2[test_ind] = (*(float*)&(int32_t){rand()});
-        }
     }
 
 //Testing

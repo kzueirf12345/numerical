@@ -56,15 +56,16 @@ float vogf(float x) {
         return FLOAT_POS_ZERO;
     }
 
-    const uint32_t xu = *(uint32_t*)&x;
+    uint32_t xu = *(uint32_t*)&x;
 
     if ((xu & SIGN_MASK) && (x != 0.f)) { //negative
         errno = FE_INVALID;
         return FLOAT_QNAN;
     }
 
-    const uint32_t exp = (xu & EXP_MASK) >> MANT_SIZE;
-    const uint32_t mant = xu & MANT_MASK;
+    uint32_t exp = (xu & EXP_MASK) >> MANT_SIZE;
+    uint32_t mant = xu & MANT_MASK;
+    int32_t extra_pow = 0;
 
     enum FloatClass class = get_float_class_(exp, mant);
 
@@ -77,7 +78,11 @@ float vogf(float x) {
         case FLOAT_CLASS_INFINITY: // neg infinity check in neg
             return FLOAT_POS_INF;
         case FLOAT_CLASS_DENORMAL:
-            return FLOAT_SNAN; // TODO handle
+            x *= (float)(1u << MANT_SIZE);
+            xu = *(uint32_t*)&x;
+            exp = (xu & EXP_MASK) >> MANT_SIZE;
+            mant = xu & MANT_MASK;
+            extra_pow = -23;
         case FLOAT_CLASS_NORMAL:
         default:
             break;
@@ -88,7 +93,7 @@ float vogf(float x) {
 /*!SECTION
 ln(x)=ln(mant*2^pow)=ln(mant)+ln(2^pow)=ln(mant)+pow⋅ln(2)
 */
-    const int32_t x_pow = (int32_t)exp - (int32_t)FLOAT_OFFSET_;
+    const int32_t x_pow = (int32_t)exp - (int32_t)FLOAT_OFFSET_ + extra_pow;
 
     const uint32_t normal_mantu = (FLOAT_OFFSET_ << MANT_SIZE) | mant; // [1, 2)
     const float normal_mant = *(const float*)(&normal_mantu);
