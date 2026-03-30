@@ -99,7 +99,7 @@ ln(x)=ln(mant*2^pow)=ln(mant)+ln(2^pow)=ln(mant)+pow⋅ln(2)
 
 //---------------------------------------POLYNOM----------------------------------------------------
 
-    double p = r * (FLOAT_C1 + r * (FLOAT_C2 + r * FLOAT_C3));
+    double p = r * (FLOAT_C1 + r * (FLOAT_C2 /*+ r * FLOAT_C3*/)); // uncomment if use TABLE_BIT_CNT < 12
 
 //---------------------------------------RECONSTRUCTION---------------------------------------------
 

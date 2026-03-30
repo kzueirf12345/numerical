@@ -34,7 +34,7 @@ int main(const int argc, char* const argv[])
 
     const bool colored_text_supported = (flags_objs.out == stdout);
 
-    fprintf(flags_objs.out, "seed: %u\n\n", flags_objs.seed);
+    fprintf(flags_objs.out, "seed: %u\n", flags_objs.seed);
 
 //Testcase1
 
