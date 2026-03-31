@@ -2,7 +2,7 @@
         libs_build libs_clean libs_rebuild \
 		clean_all clean_log clean_out clean_obj clean_deps clean_txt clean_bin
 
-PROJECT_NAME = logf
+PROJECT_NAME = vogf
 
 BUILD_DIR = ./build
 SRC_DIR = ./src
@@ -41,15 +41,15 @@ endif
 
 endif
 
-FLAGS += $(ADD_FLAGS)
+FLAGS += -fopenmp $(ADD_FLAGS)
 
 LIBS = -lm -lmpfr -L./libs/logger -llogger 
 
 
-DIRS = flags utils vogf
+DIRS = flags utils vogf testing
 BUILD_DIRS = $(DIRS:%=$(BUILD_DIR)/%)
 
-SOURCES = main.c flags/flags.c utils/utils.c vogf/vogf.c
+SOURCES = main.c flags/flags.c utils/utils.c vogf/vogf.c testing/testing.c
 
 SOURCES_REL_PATH = $(SOURCES:%=$(SRC_DIR)/%)
 OBJECTS_REL_PATH = $(SOURCES:%.c=$(BUILD_DIR)/%.o)
@@ -92,7 +92,7 @@ libs_clean:
 	make clean -C ./libs/logger/
 
 
-clean_all: clean libs_clean
+clean_all: clean libs_clean clean_pgo
 
 clean: clean_obj clean_deps clean_out libs_clean
 
@@ -113,3 +113,28 @@ clean_txt:
 
 clean_bin:
 	rm -rf ./*.bin
+
+
+
+PGO_DIR = $(BUILD_DIR)/pgo_data
+PGO_GEN_FLAGS = -fprofile-generate=$(PGO_DIR)
+PGO_USE_FLAGS = -fprofile-use=$(PGO_DIR) -fprofile-correction
+
+.PHONY: pgo
+
+pgo: clean_all
+	@mkdir -p $(PGO_DIR)
+	@echo "--- Phase 1: Building with instrumentation ---"
+	$(MAKE) build ADD_FLAGS="$(PGO_GEN_FLAGS)" DEBUG_=0
+	
+	@echo "--- Phase 2: Running training (Exhaustive test) ---"
+	./$(PROJECT_NAME).out $(OPTS)
+	
+	@echo "--- Phase 3: Rebuilding with profile data ---"
+	$(MAKE) clean_obj clean_deps clean_out
+	$(MAKE) build ADD_FLAGS="$(PGO_USE_FLAGS)" DEBUG_=0
+	
+	@echo "--- PGO Build Complete ---"
+
+clean_pgo:
+	rm -rf $(PGO_DIR)

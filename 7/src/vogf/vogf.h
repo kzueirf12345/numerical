@@ -1,5 +1,5 @@
-#ifndef LOGF_SRC_VOGF_VOGF_H
-#define LOGF_SRC_VOGF_VOGF_H
+#ifndef VOGF_SRC_VOGF_VOGF_H
+#define VOGF_SRC_VOGF_VOGF_H
 
 #define FLOAT_POS_ZERO      (*(float*)&(uint32_t){0x00000000u})  // +0
 #define FLOAT_NEG_ZERO      (*(float*)&(uint32_t){0x80000000u})  // -0
@@ -12,4 +12,4 @@
 
 float vogf(float x);
 
-#endif /*LOGF_SRC_VOGF_VOGF_H*/
+#endif /*VOGF_SRC_VOGF_VOGF_H*/

@@ -3,23 +3,14 @@
 #include <stdlib.h>
 #include <mpfr.h>
 #include <math.h>
+#include <omp.h>
 
 #include "logger/src/logger.h"
 #include "utils/utils.h"
 #include "logger/liblogger.h" // IWYU pragma: keep
 #include "flags/flags.h"
-#include "vogf/vogf.h"
 #include "utils/concole.h"
-
-float calculate_ulp_diff(float actual, double expected);
-
-int test_vogf(
-    const float testcases[], 
-    const size_t testcases_size, 
-    const char* suite_name, 
-    FILE* const output,
-    bool only_incorrect
-);
+#include "testing/testing.h"
 
 static int init_all(flags_objs_t* const flags_objs, const int argc, char* const * argv);
 static int dtor_all(flags_objs_t* const flags_objs);
@@ -61,13 +52,36 @@ int main(const int argc, char* const argv[])
 //Testcase2
 
     const char* const testcase2_name = "Testing random values";
-    float testcase2[500000];
+    float testcase2[50000];
     const size_t testcase2_size = sizeof(testcase2) / sizeof(*testcase2);
 
     for (size_t test_ind = 0; test_ind < testcase2_size; ++test_ind) {
         static_assert(sizeof(float) == sizeof(int), "For bitcast");
         testcase2[test_ind] = (*(float*)&(int32_t){rand()});
     }
+
+//Testcase3
+
+    const char* const testcase3_name = "Testing near 1";
+    float testcase3[] = {
+        *(float*)&(uint32_t){0x3f7ffff1u},
+        *(float*)&(uint32_t){0x3f7ffff2u},
+        *(float*)&(uint32_t){0x3f7ffff3u},
+        *(float*)&(uint32_t){0x3f7ffff4u},
+        *(float*)&(uint32_t){0x3f7ffff5u},
+        *(float*)&(uint32_t){0x3f7ffff6u},
+        *(float*)&(uint32_t){0x3f7ffff7u},
+        *(float*)&(uint32_t){0x3f7ffff8u},
+        *(float*)&(uint32_t){0x3f7ffff9u},
+        *(float*)&(uint32_t){0x3f7ffffau},
+        *(float*)&(uint32_t){0x3f7ffffbu},
+        *(float*)&(uint32_t){0x3f7ffffcu},
+        *(float*)&(uint32_t){0x3f7ffffdu},
+        *(float*)&(uint32_t){0x3f7ffffeu},
+        *(float*)&(uint32_t){0x3f7fffffu},
+    };
+        
+    const size_t testcase3_size = sizeof(testcase3) / sizeof(*testcase3);
 
 //Testing
 
@@ -78,6 +92,12 @@ int main(const int argc, char* const argv[])
     npassed_cnt += (res != 0);
 
     res = test_vogf(testcase2, testcase2_size, testcase2_name, flags_objs.out, flags_objs.only_incorrect);
+    npassed_cnt += (res != 0);
+
+    res = test_vogf(testcase3, testcase3_size, testcase3_name, flags_objs.out, flags_objs.only_incorrect);
+    npassed_cnt += (res != 0);
+
+    res = test_all_vogf(flags_objs.out);
     npassed_cnt += (res != 0);
 
     if (npassed_cnt == 0) {
@@ -104,131 +124,6 @@ int main(const int argc, char* const argv[])
 
 //==================================================================================================
 
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wfloat-equal"
-float calculate_ulp_diff(float actual, double expected) {
-
-    if (isnan(actual) || isnan(expected)) {
-        return (isnan(actual) && isnan(expected)) ? 0.0f : FLT_MAX;
-    }
-
-    if (isinf(actual) || isinf(expected)) {
-        return (actual == (float)expected) ? 0.0f : FLT_MAX;
-    }
-
-    if (actual == 0.f && expected == 0.f) {
-        return (signbit(actual) == signbit(expected)) ? 0.0f : FLT_MAX;
-    }
-
-    if (actual == (float)expected) {
-        return 0.0f;
-    }
-
-    float ulp_error = 0.5;
-    for (; (actual = nextafterf(actual, (float)expected)) != (float)expected; ++ulp_error);
-
-    return ulp_error;
-}
-#pragma GCC diagnostic pop
-
-#define CRITICAL_ULP_ERROR_ (3.5f)
-int test_vogf(
-    const float tests[], 
-    const size_t tests_size, 
-    const char* testcase_name, 
-    FILE* const output,
-    bool only_incorrect
-) {
-    lassert(!is_invalid_ptr(tests), "testcases array is not valid");
-    lassert(tests_size > 0, "testcases size is zero");
-    lassert(!is_invalid_ptr(output), "output stream is not valid");
-
-    const bool colored_text_supported = (output == stdout);
-
-    if (testcase_name) {
-        fprintf(output, "\n%s\n", testcase_name);
-    }
-
-    mpfr_t x_mpfr;
-    mpfr_t res_mpfr;
-    mpfr_init2(x_mpfr, 256);
-    mpfr_init2(res_mpfr, 256);
-
-    int npassed_cnt = 0;
-
-    float max_ulp_error = 0;
-
-    for (size_t test_ind = 0; test_ind < tests_size; ++test_ind) {
-        const float test_num = tests[test_ind];
-
-        const float res_vogf = vogf(test_num);
-        
-        mpfr_set_d(x_mpfr, test_num, MPFR_RNDN); 
-        mpfr_log(res_mpfr, x_mpfr, MPFR_RNDN);
-
-        const double expected = mpfr_get_d(res_mpfr, MPFR_RNDN);
-
-        const float ulp_error = calculate_ulp_diff(res_vogf, expected);
-
-        max_ulp_error = MAX(ulp_error, max_ulp_error);
-
-        if (!only_incorrect || ulp_error > CRITICAL_ULP_ERROR_) {
-            fprintf(
-                output,
-                "x: %.20f\t|\tVogf: %.20f\t|\t Expected: %.20f\t|\tULP Error: %.1f\n", 
-                test_num, res_vogf, (float)expected, ulp_error
-            );
-        }
-
-        if (ulp_error > CRITICAL_ULP_ERROR_) {
-            if (colored_text_supported) {
-                fprintf(
-                    output,
-                    RED_TEXT("ULP more then critical value %g. ULP: %g\n"), 
-                    CRITICAL_ULP_ERROR_, ulp_error
-                );
-            }
-            else {
-                fprintf(
-                    output,
-                    "ULP more then critical value %.1f. ULP: %.1f\n", 
-                    CRITICAL_ULP_ERROR_, ulp_error
-                );
-            }
-            ++npassed_cnt;
-        }
-    }
-
-    mpfr_clear(x_mpfr);
-    mpfr_clear(res_mpfr);
-
-    if (npassed_cnt == 0) {
-        if (colored_text_supported) {
-            fprintf(output, GREEN_TEXT("ALL TEST PASSED!!!\n"));
-        }
-        else {
-            fprintf(output, "ALL TEST PASSED!!!\n");
-        }
-    }
-    else {
-        if (colored_text_supported) {
-            fprintf(output, RED_TEXT("%d TESTS NOT PASSED!!!\n"), npassed_cnt);
-        }
-        else {
-            fprintf(output, "%d TESTS NOT PASSED!!!\n", npassed_cnt);
-        }
-    }
-
-    if (colored_text_supported) {
-        fprintf(output, YELLOW_TEXT("Max ULP error: %.1f\n"), max_ulp_error);
-    }
-    else {
-        fprintf(output, "Max ULP error: %.1f\n", max_ulp_error);
-    }
-
-    return npassed_cnt;
-}
-#undef CRITICAL_ULP_ERROR_
 
 enum LoggError logger_init(char* const log_folder);
 

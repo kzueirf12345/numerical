@@ -1,5 +1,5 @@
-#ifndef LOGF_SRC_FLAGS_FLAGS_H
-#define LOGF_SRC_FLAGS_FLAGS_H
+#ifndef VOGF_SRC_FLAGS_FLAGS_H
+#define VOGF_SRC_FLAGS_FLAGS_H
 
 #include <assert.h>
 #include <stdio.h>
@@ -46,4 +46,4 @@ enum FlagsError flags_processing(flags_objs_t* const flags_objs,
 
 
 
-#endif /*LOGF_SRC_FLAGS_FLAGS_H*/
+#endif /*VOGF_SRC_FLAGS_FLAGS_H*/

@@ -23,7 +23,7 @@ static_assert(sizeof(float) == sizeof(uint32_t), "Operands must have the same si
 #define LN2_ (0.693147180559945309417232121458)
 
 #define FLOAT_C1 (1)
-#define FLOAT_C2 (-0.499925) // test 0.999999f
+#define FLOAT_C2 (-0.4999185) // test 0x3f7fffffu
 #define FLOAT_C3 (0.3333333432674407958984375)
 
 //==============================HELPERS=============================================================

@@ -1,5 +1,5 @@
-#ifndef LOGF_SRC_UTILS_UTILS_H
-#define LOGF_SRC_UTILS_UTILS_H
+#ifndef VOGF_SRC_UTILS_UTILS_H
+#define VOGF_SRC_UTILS_UTILS_H
 
 #include <stdio.h>
 #include <assert.h>
@@ -57,4 +57,4 @@ enum PtrState is_invalid_ptr(const void* ptr);
 
 int is_empty_file (FILE* file);
 
-#endif /*LOGF_SRC_UTILS_UTILS_H*/
+#endif /*VOGF_SRC_UTILS_UTILS_H*/
