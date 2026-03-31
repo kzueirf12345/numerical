@@ -27,17 +27,17 @@ int main(const int argc, char* const argv[])
 
     fprintf(flags_objs.out, "seed: %u\n", flags_objs.seed);
 
-//Testcase1
+//Testcase
 
-    const char* const testcase1_name = "Testing some specific values";
+    const char* const testcase_spec_name = "Testing some specific values";
 
-    const float testcase1[] = {
-        0.0f, -0.0f, INFINITY, NAN, -1.0f, 1.0f, //special
+    const float testcase_spec[] = {
+        0.0f, -0.0f, INFINITY, -INFINITY, NAN, -1.0f, 1.0f, //special
         (*(float*)&(uint32_t){0x00800000u}),  // min normal
         (*(float*)&(uint32_t){0x7f7fffffu}),  // max normal
         (*(float*)&(uint32_t){0x007FFFFFu}),  // max denormal
         (*(float*)&(uint32_t){0x00000001u}),  // min denormal
-        2.f, 4.f, 0.5f, // 2^n
+        2.f, 8.f, 0.5f, 0.125f, // 2^n
         1073741824.0f, // 2^30
         1.4142135f, 1.4142136f, // sqrt(2)
         1.000001f, 0.999999f, 1.0001f, 0.9999f, // 1
@@ -47,57 +47,50 @@ int main(const int argc, char* const argv[])
         0.33333333f, // 1/3
     };
 
-    const size_t testcase1_size = sizeof(testcase1) / sizeof(*testcase1);
+    const size_t testcase_spec_size = sizeof(testcase_spec) / sizeof(*testcase_spec);
 
-//Testcase2
+//Testcase
 
-    const char* const testcase2_name = "Testing random values";
-    float testcase2[50000];
-    const size_t testcase2_size = sizeof(testcase2) / sizeof(*testcase2);
+    const char* const testcase_rand_name = "Testing random values";
+    float testcase_rand[50000];
+    const size_t testcase_rand_size = sizeof(testcase_rand) / sizeof(*testcase_rand);
 
-    for (size_t test_ind = 0; test_ind < testcase2_size; ++test_ind) {
+    for (size_t test_ind = 0; test_ind < testcase_rand_size; ++test_ind) {
         static_assert(sizeof(float) == sizeof(int), "For bitcast");
-        testcase2[test_ind] = (*(float*)&(int32_t){rand()});
+        testcase_rand[test_ind] = (*(float*)&(int32_t){rand()});
     }
 
-//Testcase3
+//Testcase
 
-    const char* const testcase3_name = "Testing near 1";
-    float testcase3[] = {
-        *(float*)&(uint32_t){0x3f7ffff1u},
-        *(float*)&(uint32_t){0x3f7ffff2u},
-        *(float*)&(uint32_t){0x3f7ffff3u},
-        *(float*)&(uint32_t){0x3f7ffff4u},
-        *(float*)&(uint32_t){0x3f7ffff5u},
-        *(float*)&(uint32_t){0x3f7ffff6u},
-        *(float*)&(uint32_t){0x3f7ffff7u},
-        *(float*)&(uint32_t){0x3f7ffff8u},
-        *(float*)&(uint32_t){0x3f7ffff9u},
-        *(float*)&(uint32_t){0x3f7ffffau},
-        *(float*)&(uint32_t){0x3f7ffffbu},
-        *(float*)&(uint32_t){0x3f7ffffcu},
-        *(float*)&(uint32_t){0x3f7ffffdu},
-        *(float*)&(uint32_t){0x3f7ffffeu},
-        *(float*)&(uint32_t){0x3f7fffffu},
+    const char* const testcase_flags_name = "Testing flags";
+
+    const vogf_flag_test_t testcase_flags[] = {
+        { -1.0f,     "Negative value" },
+        { -INFINITY, "Negative infinity" },
+        { 0.0f,      "Positive zero" },
+        { -0.0f,     "Negative zero" },
+        { 1.0f,      "Exact one (no flags)" },
+        { INFINITY,  "Positive infinity (no flags)" },
+        { 2.0f,      "Normal value (inexact result)" }
     };
-        
-    const size_t testcase3_size = sizeof(testcase3) / sizeof(*testcase3);
+
+    const size_t testcase_flags_size = sizeof(testcase_flags) / sizeof(*testcase_flags);
 
 //Testing
 
     int npassed_cnt = 0;
     int res = 0;
 
-    res = test_vogf(testcase1, testcase1_size, testcase1_name, flags_objs.out, flags_objs.only_incorrect);
+    res = vogf_test_res(testcase_spec, testcase_spec_size, testcase_spec_name, flags_objs.out, flags_objs.only_incorrect);
     npassed_cnt += (res != 0);
-
-    res = test_vogf(testcase2, testcase2_size, testcase2_name, flags_objs.out, flags_objs.only_incorrect);
+    
+    res = vogf_test_flags(testcase_flags, testcase_flags_size, testcase_flags_name, flags_objs.out, flags_objs.only_incorrect);
     npassed_cnt += (res != 0);
-
-    res = test_vogf(testcase3, testcase3_size, testcase3_name, flags_objs.out, flags_objs.only_incorrect);
+    
+    res = vogf_test_all_positive(flags_objs.out);
     npassed_cnt += (res != 0);
-
-    res = test_all_vogf(flags_objs.out);
+    
+    res = vogf_test_res(testcase_rand, testcase_rand_size, testcase_rand_name, flags_objs.out, flags_objs.only_incorrect);
     npassed_cnt += (res != 0);
 
     if (npassed_cnt == 0) {

@@ -27,7 +27,24 @@
 
 #endif /*NDEBUG*/
 
-static_assert(sizeof(float) == sizeof(uint32_t), "For bitcast");
+static_assert(sizeof(float)  == sizeof(uint32_t) && sizeof(uint32_t) == sizeof(unsigned int),  "For bitcast");
+static_assert(sizeof(double) == sizeof(uint64_t) && sizeof(uint64_t) == sizeof(unsigned long long), "For bitcast");
+
+#define FLOAT_OFFSET_       (127u)
+#define FLOAT_MANT_SIZE     (23u)
+#define FLOAT_MANT_MASK     ((1u << FLOAT_MANT_SIZE) - 1u)
+#define FLOAT_EXP_SIZE      (8u)
+#define FLOAT_EXP_MASK      (((1u << FLOAT_EXP_SIZE) - 1u) << FLOAT_MANT_SIZE)
+#define FLOAT_SIGN_SIZE     (1u)
+#define FLOAT_SIGN_MASK     (1u << (FLOAT_MANT_SIZE + FLOAT_EXP_SIZE))
+
+#define DOUBLE_OFFSET_      (1023ull)
+#define DOUBLE_MANT_SIZE    (52ull)
+#define DOUBLE_MANT_MASK    ((1ull << DOUBLE_MANT_SIZE) - 1ull)
+#define DOUBLE_EXP_SIZE     (11ull)
+#define DOUBLE_EXP_MASK     (((1ull << DOUBLE_EXP_SIZE) - 1ull) << DOUBLE_MANT_SIZE)
+#define DOUBLE_SIGN_SIZE    (1ull)
+#define DOUBLE_SIGN_MASK    (1ull << (FLOAT_MANT_SIZE + FLOAT_EXP_SIZE))
 
 #define POISON_UINT32 (uint32_t)(0xDEADBEAFu)
 #define POISON_FLOAT  (*(float*)&(uint32_t){0xDEADBEAFu})

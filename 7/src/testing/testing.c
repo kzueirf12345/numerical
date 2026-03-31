@@ -4,6 +4,8 @@
 #include <math.h>
 #include <float.h>
 #include <mpfr.h>
+#include <errno.h>
+#include <fenv.h>
 
 #include "utils/utils.h"
 #include "utils/concole.h"
@@ -14,7 +16,8 @@
 
 #define CRITICAL_ULP_ERROR_ (3.5f)
 
-static float calculate_ulp_diff(float actual, double expected) {
+
+static float calculate_ulp_diff_(float actual, double expected) {
 
     if (isnan(actual) || isnan(expected)) {
         return (isnan(actual) && isnan(expected)) ? 0.0f : FLT_MAX;
@@ -32,81 +35,18 @@ static float calculate_ulp_diff(float actual, double expected) {
         return 0.0f;
     }
 
-    float ulp_error = 0.5;
-    for (; (actual = nextafterf(actual, (float)expected)) != (float)expected; ++ulp_error);
+    const uint64_t expected_u = *(uint64_t*)&expected;
+    const uint64_t expected_exp = expected_u & DOUBLE_EXP_MASK;
+    const uint64_t ulp_u = expected_exp - ((uint64_t)FLOAT_MANT_SIZE << DOUBLE_MANT_SIZE);
+    const double ulp = *(const double*)&ulp_u;
 
-    return ulp_error;
+    double ulp_error = ((double)actual - expected) / ulp;
+
+    return (float)ulp_error;
 }
 
-int test_vogf(
-    const float tests[], 
-    const size_t tests_size, 
-    const char* testcase_name, 
-    FILE* const output,
-    bool only_incorrect
-) {
-    lassert(!is_invalid_ptr(tests), "testcases array is not valid");
-    lassert(tests_size > 0, "testcases size is zero");
-    lassert(!is_invalid_ptr(output), "output stream is not valid");
-
+static void print_final_res_(int failed_cnt, FILE* const output) {
     const bool colored_text_supported = (output == stdout);
-
-    if (testcase_name) {
-        fprintf(output, "\n%s\n", testcase_name);
-    }
-
-    mpfr_t x_mpfr;
-    mpfr_t res_mpfr;
-    mpfr_init2(x_mpfr, 128);
-    mpfr_init2(res_mpfr, 128);
-
-    int failed_cnt = 0;
-
-    float max_ulp_error = 0;
-
-    for (size_t test_ind = 0; test_ind < tests_size; ++test_ind) {
-        const float test_num = tests[test_ind];
-
-        const float res_vogf = vogf(test_num);
-        
-        mpfr_set_d(x_mpfr, test_num, MPFR_RNDN); 
-        mpfr_log(res_mpfr, x_mpfr, MPFR_RNDN);
-
-        const double expected = mpfr_get_d(res_mpfr, MPFR_RNDN);
-
-        const float ulp_error = calculate_ulp_diff(res_vogf, expected);
-
-        max_ulp_error = MAX(ulp_error, max_ulp_error);
-
-        if (!only_incorrect || ulp_error > CRITICAL_ULP_ERROR_) {
-            fprintf(
-                output,
-                "x: %.20f\t|\tVogf: %.20f\t|\t Expected: %.20f\t|\tULP Error: %.1f\n", 
-                test_num, res_vogf, (float)expected, ulp_error
-            );
-        }
-
-        if (ulp_error > CRITICAL_ULP_ERROR_) {
-            if (colored_text_supported) {
-                fprintf(
-                    output,
-                    RED_TEXT("ULP more then critical value %g. ULP: %g\n"), 
-                    CRITICAL_ULP_ERROR_, ulp_error
-                );
-            }
-            else {
-                fprintf(
-                    output,
-                    "ULP more then critical value %.1f. ULP: %.1f\n", 
-                    CRITICAL_ULP_ERROR_, ulp_error
-                );
-            }
-            ++failed_cnt;
-        }
-    }
-
-    mpfr_clear(x_mpfr);
-    mpfr_clear(res_mpfr);
 
     if (failed_cnt == 0) {
         if (colored_text_supported) {
@@ -124,19 +64,92 @@ int test_vogf(
             fprintf(output, "%d TESTS NOT PASSED!!!\n", failed_cnt);
         }
     }
+}
+
+int vogf_test_res(
+    const float testcase[], 
+    const size_t testcase_size, 
+    const char* testcase_name, 
+    FILE* const output,
+    bool only_incorrect
+) {
+    lassert(!is_invalid_ptr(testcase), "testcase array is not valid");
+    lassert(testcase_size > 0, "testcase array size is zero");
+    lassert(!is_invalid_ptr(output), "output stream is not valid");
+
+    const bool colored_text_supported = (output == stdout);
+
+    if (testcase_name) {
+        fprintf(output, "\n%s\n", testcase_name);
+    }
+
+    mpfr_t x_mpfr;
+    mpfr_t res_mpfr;
+    mpfr_init2(x_mpfr, 128);
+    mpfr_init2(res_mpfr, 128);
+
+    int failed_cnt = 0;
+
+    float max_ulp_error = 0;
+
+    for (size_t test_ind = 0; test_ind < testcase_size; ++test_ind) {
+        const float test_num = testcase[test_ind];
+
+        const float res_vogf = vogf(test_num);
+        
+        mpfr_set_d(x_mpfr, test_num, MPFR_RNDN); 
+        mpfr_log(res_mpfr, x_mpfr, MPFR_RNDN);
+
+        const double expected = mpfr_get_d(res_mpfr, MPFR_RNDN);
+
+        const float ulp_error = calculate_ulp_diff_(res_vogf, expected);
+
+        max_ulp_error = MAX(ulp_error, max_ulp_error);
+
+        if (!only_incorrect || ulp_error > CRITICAL_ULP_ERROR_) {
+            fprintf(
+                output,
+                "x: %.20e\t|\tVogf: %.20e\t|\t Expected: %.20e\t|\tULP Error: %.3f\n", 
+                test_num, res_vogf, (float)expected, ulp_error
+            );
+        }
+
+        if (ulp_error > CRITICAL_ULP_ERROR_) {
+            if (colored_text_supported) {
+                fprintf(
+                    output,
+                    RED_TEXT("ULP more then critical value %g. ULP: %g\n"), 
+                    CRITICAL_ULP_ERROR_, ulp_error
+                );
+            }
+            else {
+                fprintf(
+                    output,
+                    "ULP more then critical value %.3f. ULP: %.3f\n", 
+                    CRITICAL_ULP_ERROR_, ulp_error
+                );
+            }
+            ++failed_cnt;
+        }
+    }
+
+    mpfr_clear(x_mpfr);
+    mpfr_clear(res_mpfr);
+
+    print_final_res_(failed_cnt, output);
 
     if (colored_text_supported) {
-        fprintf(output, YELLOW_TEXT("Max ULP error: %.1f\n"), max_ulp_error);
+        fprintf(output, YELLOW_TEXT("Max ULP error: %.3f\n"), max_ulp_error);
     }
     else {
-        fprintf(output, "Max ULP error: %.1f\n", max_ulp_error);
+        fprintf(output, "Max ULP error: %.3f\n", max_ulp_error);
     }
 
     return failed_cnt;
 }
 
 
-int test_all_vogf(FILE* const output) {
+int vogf_test_all_positive(FILE* const output) {
     lassert(!is_invalid_ptr(output), "output stream is not valid");
 
     const bool colored_text_supported = (output == stdout);
@@ -144,7 +157,7 @@ int test_all_vogf(FILE* const output) {
     int total_failed = 0;
     float global_max_ulp = 0.0f;
 
-    const uint32_t max_bits = 0x7F800000; 
+    const uint32_t max_bits = *(uint32_t*)&(float){INFINITY}; 
     
     const uint32_t progress_step = max_bits / 10000;
 
@@ -172,7 +185,7 @@ int test_all_vogf(FILE* const output) {
             mpfr_log(res_mpfr, x_mpfr, MPFR_RNDN);
             double expected = mpfr_get_d(res_mpfr, MPFR_RNDN);
 
-            float ulp_error = calculate_ulp_diff(res_vogf, expected);
+            float ulp_error = calculate_ulp_diff_(res_vogf, expected);
 
             local_max_ulp = MAX(ulp_error, local_max_ulp);
             
@@ -181,7 +194,7 @@ int test_all_vogf(FILE* const output) {
                 {
                     fprintf(
                         output,
-                        "x: %.20e\t|\tVogf: %.20e\t|\t Expected: %.20e\t|\tULP Error: %.1f\n", 
+                        "\nx: %.20e\t|\tVogf: %.20e\t|\t Expected: %.20e\t|\tULP Error: %.3f\n", 
                         test_num, res_vogf, (float)expected, ulp_error
                     );
                     ++local_failed;
@@ -204,35 +217,75 @@ int test_all_vogf(FILE* const output) {
         mpfr_clear(res_mpfr);
     }
 
-    printf("\rProgress: 100%%...");
-    fflush(stdout);
-
     double end_time = omp_get_wtime();
-    printf("\nTest finished in %.2f seconds.\n", end_time - start_time);
+    printf("\rTest finished in %.2f seconds.\n", end_time - start_time);
 
-    if (total_failed == 0) {
-        if (colored_text_supported) {
-            fprintf(output, GREEN_TEXT("ALL TEST PASSED!!!\n"));
-        }
-        else {
-            fprintf(output, "ALL TEST PASSED!!!\n");
-        }
-    }
-    else {
-        if (colored_text_supported) {
-            fprintf(output, RED_TEXT("%d TESTS NOT PASSED!!!\n"), total_failed);
-        }
-        else {
-            fprintf(output, "%d TESTS NOT PASSED!!!\n", total_failed);
-        }
-    }
+    print_final_res_(total_failed, output);
 
     if (colored_text_supported) {
-        fprintf(output, YELLOW_TEXT("Max ULP error: %.1f\n"), global_max_ulp);
+        fprintf(output, YELLOW_TEXT("Max ULP error: %.3f\n"), global_max_ulp);
     }
     else {
-        fprintf(output, "Max ULP error: %.1f\n", global_max_ulp);
+        fprintf(output, "Max ULP error: %.3f\n", global_max_ulp);
     }
 
     return total_failed;
+}
+
+int vogf_test_flags(
+    const vogf_flag_test_t testcase[], 
+    const size_t testcase_size, 
+    const char* testcase_name, 
+    FILE* const output,
+    bool only_incorrect
+) {
+    lassert(!is_invalid_ptr(testcase), "testcase array is not valid");
+    lassert(testcase_size > 0, "testcase array size is zero");
+    lassert(!is_invalid_ptr(output), "output stream is not valid");
+
+    const bool colored_text_supported = (output == stdout);
+
+    if (testcase_name) {
+        fprintf(output, "\n%s\n", testcase_name);
+    }
+
+    int failed_cnt = 0;
+
+    for (size_t test_ind = 0; test_ind < testcase_size; ++test_ind) {
+        errno = 0;
+        feclearexcept(FE_ALL_EXCEPT);
+
+        const vogf_flag_test_t test = testcase[test_ind];
+        const float test_num = test.x;
+        
+        [[maybe_unused]] const float res_vogf = vogf(test_num);
+
+        const int vogf_errno = errno;
+        const int vogf_fenv = fetestexcept(FE_ALL_EXCEPT);
+
+        [[maybe_unused]] const float res_logf = logf(test_num);
+
+        const int logf_errno = errno;
+        const int logf_fenv = fetestexcept(FE_ALL_EXCEPT);
+
+        const bool incorrect = vogf_errno != logf_errno || vogf_fenv != logf_fenv;
+
+        if (!only_incorrect || incorrect) {
+            fprintf(
+                output,
+                "%s"
+                "x: %.20e\t|\tvogf_errno: %x\t|\tvogf_fenv: %x\t|\tlogf_errno: %x\t|\tlogf_fenv: %x\t\n"
+                "Desc: '%s'\n",
+                (incorrect ? (colored_text_supported ? RED_TEXT("INCORRECT\n")  : "INCORRECT\n") : ""),
+                test_num, (unsigned)vogf_errno, (unsigned)vogf_fenv, (unsigned)logf_errno, (unsigned)logf_fenv,
+                test.desc
+            );
+        }
+
+        failed_cnt += incorrect;
+    }
+
+    print_final_res_(failed_cnt, output);
+
+    return failed_cnt;
 }
