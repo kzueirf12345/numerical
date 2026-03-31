@@ -10,6 +10,6 @@
 #define FLOAT_QNAN          (*(float*)&(uint32_t){0x7FC00000u})  // quite nan, first mantissa bit is 1
 #define FLOAT_SNAN          (*(float*)&(uint32_t){0x7F800001u})  // signaling nan, first mantissa bit is 0, but mant != 0
 
-float vogf(float x);
+float vogf(float x);//142606336
 
 #endif /*VOGF_SRC_VOGF_VOGF_H*/

@@ -40,7 +40,7 @@ static float calculate_ulp_diff_(float actual, double expected) {
     const uint64_t ulp_u = expected_exp - ((uint64_t)FLOAT_MANT_SIZE << DOUBLE_MANT_SIZE);
     const double ulp = *(const double*)&ulp_u;
 
-    double ulp_error = ((double)actual - expected) / ulp;
+    double ulp_error = fabs((double)actual - expected) / ulp;
 
     return (float)ulp_error;
 }
@@ -163,7 +163,7 @@ int vogf_test_all_positive(FILE* const output) {
 
     double start_time = omp_get_wtime();
 
-    printf("\nTest all positive correct values\n");
+    fprintf(output, "\nTest all positive correct values\n");
 
     #pragma omp parallel
     {
@@ -174,7 +174,7 @@ int vogf_test_all_positive(FILE* const output) {
         int local_failed = 0;
         float local_max_ulp = 0.0f;
 
-        #pragma omp for schedule(static, 65536)
+        #pragma omp for schedule(static, 1048576) // 2^20
         for (uint32_t i = 0; i <= max_bits; ++i) {
             static_assert(sizeof(float) == sizeof(i), "for bit cast");
             float test_num = *(float*)&i;

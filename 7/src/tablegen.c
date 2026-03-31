@@ -3,7 +3,7 @@
 #include <mpfr.h>
 #include <unistd.h>
 // L1d = 2^18 byte = 2^15 double (reserve 2^15/2/2= 2^13)
-#define K (9u)
+#define K (8u)
 
 int main() {
     const size_t size = (1u << K);
@@ -20,8 +20,6 @@ int main() {
         "#define TABLE_SIZE (1u << %uu)\n\n",
         K, K
     );
-
-
     
     printf("static const float R_TABLE[TABLE_SIZE] = {\n");
     for (size_t i = 0; i < size; ++i) {

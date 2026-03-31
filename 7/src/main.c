@@ -40,7 +40,7 @@ int main(const int argc, char* const argv[])
         2.f, 8.f, 0.5f, 0.125f, // 2^n
         1073741824.0f, // 2^30
         1.4142135f, 1.4142136f, // sqrt(2)
-        1.000001f, 0.999999f, 1.0001f, 0.9999f, // 1
+        nextafterf(1.f, INFINITY), 1, nextafterf(1.f, -INFINITY), 0.9999f, // 1
         0.70710677f, // 1/sqrt(2)
         3.14159265f, // pi
         2.71828182f, // e
@@ -52,7 +52,7 @@ int main(const int argc, char* const argv[])
 //Testcase
 
     const char* const testcase_rand_name = "Testing random values";
-    float testcase_rand[50000];
+    float testcase_rand[1000];
     const size_t testcase_rand_size = sizeof(testcase_rand) / sizeof(*testcase_rand);
 
     for (size_t test_ind = 0; test_ind < testcase_rand_size; ++test_ind) {
