@@ -44,6 +44,7 @@ enum FlagsError flags_objs_ctor(flags_objs_t* const flags_objs)
     flags_objs->seed = (unsigned int)time(NULL);
 
     flags_objs->only_incorrect = true;
+    flags_objs->need_help = false;
 
     return FLAGS_ERROR_SUCCESS;
 }
@@ -69,7 +70,7 @@ enum FlagsError flags_processing(flags_objs_t* const flags_objs,
     lassert(argc, "");
 
     int getopt_rez = 0;
-    while ((getopt_rez = getopt(argc, argv, "al:o:s:")) != -1)
+    while ((getopt_rez = getopt(argc, argv, "ahl:o:s:")) != -1)
     {
         switch (getopt_rez)
         {
@@ -106,6 +107,11 @@ enum FlagsError flags_processing(flags_objs_t* const flags_objs,
             case 'a':
             {
                 flags_objs->only_incorrect = false;
+                break;
+            }
+            case 'h':
+            {
+                flags_objs->need_help = true;
                 break;
             }
 

@@ -23,6 +23,12 @@ int main(const int argc, char* const argv[])
 
     INT_ERROR_HANDLE(init_all(&flags_objs, argc, argv));
 
+    if (flags_objs.need_help) {
+        printf(HELP_MESSAGE);
+        INT_ERROR_HANDLE(                                                    dtor_all(&flags_objs));
+        return EXIT_SUCCESS;
+    }
+
     const bool colored_text_supported = (flags_objs.out == stdout);
 
     fprintf(flags_objs.out, "seed: %u\n", flags_objs.seed);

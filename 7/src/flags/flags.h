@@ -37,7 +37,20 @@ typedef struct FlagsObjs
 
     bool only_incorrect;
 
+    bool need_help;
+
 } flags_objs_t;
+
+//ahl:o:s:
+
+#define HELP_MESSAGE \
+    "Usage: vogf.out [OPTIONS]\n" \
+    "Options:\n" \
+    "\t-a                     Output all tests, not only incorrect\n" \
+    "\t-l <FOLDER>            Specify folder for logs (default: ./log/)\n" \
+    "\t-o <FILE>              Specify output file (default: STDOUT)\n" \
+    "\t-s <VALUE>             Specify seed for testing random values (default: random)\n" \
+    "\t-h                     Show this help message\n"
 
 enum FlagsError flags_objs_ctor (flags_objs_t* const flags_objs);
 enum FlagsError flags_objs_dtor (flags_objs_t* const flags_objs);
