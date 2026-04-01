@@ -1,0 +1,219 @@
+\documentclass[12pt]{extarticle}
+\linespread{1.5}
+
+\title{Собственная функция натурального логарифма vogf (Vova's logarithm)}
+\author{Владимир Попов}
+\date{\today}
+
+\usepackage{cmap}
+\usepackage[T2A]{fontenc}
+\usepackage[english, russian]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage{mathtools}
+\usepackage{amsfonts}
+\usepackage{graphicx}
+\usepackage{listings}
+\usepackage{courier}
+\usepackage{indentfirst}
+\usepackage{stmaryrd}
+\usepackage{caption}
+\captionsetup[figure]{labelformat=empty}
+\usepackage{amssymb}
+\usepackage{multirow, makecell, array}
+\usepackage{blindtext}
+\usepackage{hyperref}
+\usepackage{booktabs}
+
+\usepackage{tikz}
+\usepackage{tzplot}
+\usetikzlibrary{arrows,decorations.pathmorphing,backgrounds,positioning,fit,petri}
+\usetikzlibrary{calc,intersections,through,backgrounds, quotes, angles}
+\usetikzlibrary{arrows,automata,positioning}
+\tikzset{snake it/.style={decorate, decoration=snake}}
+\usepackage{pgfplots,pgf-pie}
+
+\usepackage{geometry} % Меняем поля страницы
+\geometry{left=2cm}% левое поле
+\geometry{right=1.5cm}% правое поле
+\geometry{top=1cm}% верхнее поле
+\geometry{bottom=2cm}% нижнее поле
+
+\newtheorem{definition}{Определение}
+\newtheorem{remark}{Ремарка!}
+\newtheorem{theorem}{Теорема}
+
+\newcommand{\implyarrow}{%
+  \mathrel{\raisebox{1.3ex}{\rotatebox[origin=c]{90}{\mathhexbox37F}}}}
+
+\DeclareMathOperator{\arccot}{arccot}
+
+\usepackage{listings}
+\usepackage{xcolor}
+
+%New colors defined below
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+
+%Code listing style named "mystyle"
+\lstdefinestyle{mystyle}{
+  backgroundcolor=\color{backcolour},   commentstyle=\color{codegreen},
+  keywordstyle=\color{magenta},
+  numberstyle=\tiny\color{codegray},
+  stringstyle=\color{codepurple},
+  basicstyle=\ttfamily\footnotesize,
+  breakatwhitespace=false,         
+  breaklines=true,                 
+  captionpos=b,                    
+  keepspaces=true,                 
+  numbers=left,                    
+  numbersep=5pt,                  
+  showspaces=false,                
+  showstringspaces=false,
+  showtabs=false,                  
+  tabsize=2
+}
+
+%"mystyle" code listing set
+\lstset{style=mystyle}
+
+\begin{document}
+
+
+\maketitle
+
+\newpage
+
+\tableofcontents
+
+\newpage
+
+\section{Аннотация}
+
+Целью является написание собственной функции вычисления натурального логарифма, без зависимостей от сторонних библиотек, предоставляющих аналогичный функционал. Входной и выходной аргументы будут типа float. Язык написания - Си. Точность результата - 3.5 ULP. 
+
+Флаги и коды ошибок должны выставляться аналогично функции logf из библиотеки libm. Проверка точности будет производиться при помощи mpfr. Также для параллельного тестирования будет использоваться OpenMP. Система сборки - Make.
+
+\begin{table}[ht]
+\centering
+\label{tab:system_specs}
+\begin{tabular}{ll}
+\toprule
+\textbf{Параметр} & \textbf{Значение} \\
+\midrule
+\multicolumn{2}{c}{\textit{Аппаратное обеспечение (Hardware)}} \\
+\midrule
+Процессор (CPU) & AMD Ryzen 7 8845H (8 ядер, 16 потоков) \\
+Архитектура & x86\_64 \\
+Базовая / Максимальная частота & 3.8 ГГц / 5.1 ГГц \\
+L1 Кэш (данные/инструкции) & 256 / 256 КиБ \\
+L2 Кэш & 8 МиБ \\
+L3 Кэш & 16 МиБ (общий) \\
+Оперативная память & 32 ГБ LPDDR5x \\
+\midrule
+\multicolumn{2}{c}{\textit{Программное обеспечение (Software)}} \\
+\midrule
+Операционная система & Ubuntu 22.04.5 LTS \\
+Ядро Linux & 6.8.0-106-generic \\
+Компилятор & GCC 11.4 / Clang 11.4 \\
+Библиотека C & glibc 2.35 \\
+Математические библиотеки & libm, MPFR (для верификации) \\
+Параллелизация & OpenMP 4.5+ \\
+Флаги компиляции & \texttt{-DNDEBUG -O2 -fopenmp} \\
+\bottomrule
+\end{tabular}
+
+\caption{Характеристики тестовой системы и программного окружения}
+\end{table}
+
+\section{Написание vogf}
+
+\subsection{\href{https://github.com/kzueirf12345/numerical/tree/ff31707a4254adfa9165e800cf88efe764b64177/7}{Базовая версия}}
+
+Напишем обычную аппроксимацию логарифма при помощи заранее предподсчитанных коэффициентов минимаксного полинома. Для значений коэффициентов будем использовать программу \texttt{sollya}. 
+
+\begin{lstlisting}[language=bash]
+$ sollya
+> fpminimax(log1p(x), [|1,2,3,4,5,6|], [|single, single, single, single, single, single|], [0, 1]);
+x * (0.999991595745086669921875 + x * (-0.499361336231231689453125 + x * (0.325206577777862548828125 + x * (-0.21004854142665863037109375 + x * (0.10122220218181610107421875 + x * (-2.386914193630218505859375e-2))))))
+\end{lstlisting}
+
+Делаем редукцию мантиссы к полуинтервалу $[1,2)$, вычитаем единицу, раскладываем функцию $\ln(x+1)$ при помощи полученной аппроксимации и добавляем экспоненциальную часть $pow\cdot\ln(2)$. Если машина поддерживает FMA инструкции, то компилятор преобразует умножение + сложение в них при вычислении значения полинома в точке, благодаря расстановке скобок. 
+
+\subsection{Lookup Table}
+
+Вычислять ряд до 6 порядка это долго. Мы можем предподсчитать значения для первых k старших битов (с занулёнными младшими) и раскладывать в полином только остаток.
+
+\begin{equation}
+    \ln(mant) = \ln(mant \cdot \frac{R_i}{R_i}) = \ln(mant\cdot R_i) - \ln(R_i)
+\end{equation}
+, где $R_i = 1.0 + \frac{i + 0.5}{2^k}$ - среднее число в i-ом интервале. 
+
+Обозначим $T_i = - \ln(R_i)$, Это будет вторая таблица предподсчитанных значений.
+Напишем \href{https://github.com/kzueirf12345/numerical/blob/Task7/7/src/tablegen.c}{скрипт}, который будет генерировать эти таблицы для произвольных значений k.
+
+\href{https://github.com/kzueirf12345/numerical/tree/Task7/7/src/vogf}{Итоговая версия функции}
+
+\section{Тестирование}
+
+Было написано 3 функции для тестирования
+\begin{enumerate}
+    \item Проверка результатов вычисления аргументов из массива. Эталон - mpfr с точностью 128 бит
+    \item Проверка результатов вычисления всех аргументов от 0 до INFINITY. Эталон - mpfr с точностью 128 бит. Вычисление выполняются параллельно при помощи OpenMP.
+    \item Проверка выставления флагов. Эталон - logf из libm.
+\end{enumerate}
+
+\begin{table}[h!]
+\centering
+\label{tab:accuracy_results}
+\begin{tabular}{lcccc}
+\toprule
+\textbf{Тип входа} & \textbf{Аргумент $x$} & {\textbf{Результат vogf}} & {\textbf{Результат mpfr}} & \textbf{Ошибка (ULP)} \\
+\midrule
+Отрицательное число & -1.0 & nan & nan & 0 \\
+nan & nan & nan & nan & 0 \\
+Ноль & 0.0 & $-\infty$ & $-\infty$ & 0 \\
+Бесконечность & $+\infty$ & $+\infty$ & $+\infty$ & 0 \\
+Единица & 1.0 & 0.0 & 0.0 & 0 \\
+Мин. норм. & $1.175494 \times 10^{-38}$ & $-87.33655$ & $-87.33655$ & $0$ \\
+Макс. норм. & $3.402823 \times 10^{38}$ & $88.72284$ & $88.72284$ & $0$ \\
+Денормал. & $1.401298 \times 10^{-45}$ & -103.27893 & -103.27893 & 0 \\
+Целое число & 2.0 & 0.693147 & 0.693147 & 0 \\
+Число $\pi$ & 3.141593 & 1.144730 & 1.144730 & 0 \\
+Число $e$ & 2.718282 & 0.999999 & 0.999999 & 0 \\
+\midrule
+\textbf{Худший случай} & 0.99999994 & $-5.960466 \times 10^{-8}$ & $-5.960464 \times 10^{-8}$ & \textbf{1.750} \\
+\bottomrule
+\multicolumn{5}{l}{\footnotesize * Тестирование проведено на всём диапазоне положительных значений. Max ULP error: 1.750.}
+\end{tabular}
+\caption{Результаты тестирования точности функции \texttt{vogf}}
+\end{table}
+
+\begin{table}[h!]
+\centering
+\label{tab:flags_results}
+\begin{tabular}{lcccc}
+\toprule
+\textbf{Описание} & \multicolumn{2}{c}{\textbf{vogf}} & \multicolumn{2}{c}{\textbf{logf}} \\
+\cmidrule(r){2-3} \cmidrule(l){4-5}
+& \texttt{errno} & \texttt{fenv} & \texttt{errno} & \texttt{fenv} \\
+\midrule
+Отрицательное число & 21 (EDOM) & 1 (FE\_INVALID) & 21 & 1 \\
+Отрицательная бесконечность & 21 (EDOM) & 1 (FE\_INVALID) & 21 & 1 \\
+Положительный нуль & 22 (ERANGE) & 4 (FE\_DIVBYZERO) & 22 & 4 \\
+Отрицательный нуль & 22 (ERANGE) & 4 (FE\_DIVBYZERO) & 22 & 4 \\
+Положительная бесконечность & 0 & 0 & 0 & 0 \\
+Неточное значение (Inexact) & 0 & 20 (FE\_INEXACT) & 0 & 20 \\
+\bottomrule
+\end{tabular}
+\caption{Результаты тестирования исключительных ситуаций \texttt{vogf}}
+\end{table}
+
+Проверка всех положительных чисел на моё машине заняла около 10 минут, я считаю это вполне приемлемо. Полный результат тестирования можно посмотреть \href{https://github.com/kzueirf12345/numerical/blob/Task7/7/assets/testing.txt}{здесь}.
+
+Наибольшая ошибка наблюдается на числах около 1, из-за катастрофической потери точности. Чтобы решить эту проблему без ухудшения времени вычислений добавлением больших порядков полинома, Таблица $T$ хранилась в формате double и вычисления производились также в них.
+
+По результатам тестирования эмпирически было выявлено, что для использования третьего порядка полинома достаточно $k=8$, а для второго - $k=12$. Если использовать таблицы с double размером $2^{12}$, то на моей машине это будет занимать одну четвёртую часть кэша первого уровня. Если учитывать, что пользователь скорее всего сам будет полагаться на использование кэша (а также функции из других библиотек, которые он использует), то релевантнее будет использовать $k=8$, чтобы не упереться в memory throughput. Тем более не у всех такие большие кэши.
+
+\end{document}
