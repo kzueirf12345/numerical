@@ -71,6 +71,7 @@ int main(const int argc, char* const argv[])
     const char* const testcase_flags_name = "Testing flags";
 
     const vogf_flag_test_t testcase_flags[] = {
+        { NAN,       "NAN" },
         { -1.0f,     "Negative value" },
         { -INFINITY, "Negative infinity" },
         { 0.0f,      "Positive zero" },

@@ -67,6 +67,8 @@ float vogf(float x) {
 
     switch (class) {
         case FLOAT_CLASS_NAN:
+            errno = EDOM;
+            feraiseexcept(FE_INVALID);
             return x;
 
         case FLOAT_CLASS_ZERO:

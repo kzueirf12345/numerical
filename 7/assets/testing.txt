@@ -31,6 +31,8 @@ ALL TEST PASSED!!!
 Max ULP error: 1.750
 
 Testing flags
+x: nan	|	vogf_errno: 21	|	vogf_fenv: 1	|	logf_errno: 21	|	logf_fenv: 1	
+Desc: 'NAN'
 x: -1.00000000000000000000e+00	|	vogf_errno: 21	|	vogf_fenv: 1	|	logf_errno: 21	|	logf_fenv: 1	
 Desc: 'Negative value'
 x: -inf	|	vogf_errno: 21	|	vogf_fenv: 1	|	logf_errno: 21	|	logf_fenv: 1	
