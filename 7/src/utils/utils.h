@@ -74,4 +74,9 @@ enum PtrState is_invalid_ptr(const void* ptr);
 
 int is_empty_file (FILE* file);
 
+uint32_t    as_uint32   (float      f   );
+uint64_t    as_uint64   (double     lf  );
+float       as_float    (uint32_t   u   );
+double      as_double   (uint64_t   ul  );
+
 #endif /*VOGF_SRC_UTILS_UTILS_H*/

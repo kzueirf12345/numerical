@@ -35,10 +35,10 @@ static float calculate_ulp_diff_(float actual, double expected) {
         return 0.0f;
     }
 
-    const uint64_t expected_u = *(uint64_t*)&expected;
+    const uint64_t expected_u = as_uint64(expected);
     const uint64_t expected_exp = expected_u & DOUBLE_EXP_MASK;
     const uint64_t ulp_u = expected_exp - ((uint64_t)FLOAT_MANT_SIZE << DOUBLE_MANT_SIZE);
-    const double ulp = *(const double*)&ulp_u;
+    const double ulp = as_double(ulp_u);
 
     double ulp_error = fabs((double)actual - expected) / ulp;
 
@@ -157,7 +157,7 @@ int vogf_test_all_positive(FILE* const output) {
     int total_failed = 0;
     float global_max_ulp = 0.0f;
 
-    const uint32_t max_bits = *(uint32_t*)&(float){INFINITY}; 
+    const uint32_t max_bits = as_uint32(INFINITY); 
     
     const uint32_t progress_step = max_bits / 10000;
 
@@ -175,9 +175,9 @@ int vogf_test_all_positive(FILE* const output) {
         float local_max_ulp = 0.0f;
 
         #pragma omp for schedule(static, 1048576) // 2^20
-        for (uint32_t i = 0; i <= max_bits; ++i) {
+        for (uint32_t i = as_uint32(0.9f); i <= as_uint32(1.1f); ++i) {
             static_assert(sizeof(float) == sizeof(i), "for bit cast");
-            float test_num = *(float*)&i;
+            float test_num = as_float(i);
 
             float res_vogf = vogf(test_num);
 

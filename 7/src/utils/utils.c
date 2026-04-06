@@ -77,3 +77,27 @@ int is_empty_file (FILE* file)
 
     return res;
 }
+
+uint32_t as_uint32(float f) {
+    uint32_t u;
+    memcpy(&u, &f, 4);
+    return u;
+}
+
+float as_float(uint32_t u) {
+    float f;
+    memcpy(&f, &u, 4);
+    return f;
+}
+
+uint64_t as_uint64(double lf) {
+    uint64_t ul;
+    memcpy(&ul, &lf, 8);
+    return ul;
+}
+
+double as_double(uint64_t ul) {
+    double lf;
+    memcpy(&lf, &ul, 8);
+    return lf;
+}

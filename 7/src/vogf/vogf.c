@@ -14,11 +14,14 @@
 
 //==============================CONSTANTS===========================================================
 
-#define LN2_ (0.693147180559945309417232121458)
+#define LN2_HI (0.693147122859954833984375f)
+#define LN2_LO (5.7699988786907852045260369777679443359375e-08f)
 
-#define FLOAT_C1 (1)
-#define FLOAT_C2 (-0.50000025)
-#define FLOAT_C3 (0.3333333432674407958984375)
+#define FLOAT_C2 (-0.5f)
+#define FLOAT_C3 (0.f) 
+// #define FLOAT_C4 (-0.25f)
+// #define FLOAT_C5 (9.523817338049411773681640625e-3f)
+// #define FLOAT_C6 (-0.16170634329319000244140625f)
 
 //==============================HELPERS=============================================================
 
@@ -50,7 +53,7 @@ float vogf(float x) {
         return FLOAT_POS_ZERO;
     }
 
-    uint32_t xu = *(uint32_t*)&x;
+    uint32_t xu = as_uint32(x);
     uint32_t exp = (xu & FLOAT_EXP_MASK) >> FLOAT_MANT_SIZE;
     uint32_t mant = xu & FLOAT_MANT_MASK;
     uint32_t sign = xu & FLOAT_SIGN_MASK;
@@ -81,7 +84,7 @@ float vogf(float x) {
 
         case FLOAT_CLASS_DENORMAL:
             x *= (float)(1u << FLOAT_MANT_SIZE); // make normal
-            xu = *(uint32_t*)&x;
+            xu = as_uint32(x);
             exp = (xu & FLOAT_EXP_MASK) >> FLOAT_MANT_SIZE;
             mant = xu & FLOAT_MANT_MASK;
             extra_pow = -(int32_t)FLOAT_MANT_SIZE;
@@ -102,26 +105,40 @@ float vogf(float x) {
 /*!SECTION
 ln(x)=ln(mant*2^pow)=ln(mant)+ln(2^pow)=ln(mant)+pow⋅ln(2)
 */
-    const int32_t x_pow = (int32_t)exp - (int32_t)FLOAT_OFFSET_ + extra_pow;
-
-    const uint32_t normal_mantu = (FLOAT_OFFSET_ << FLOAT_MANT_SIZE) | mant; // [1, 2)
-    const float normal_mant = *(const float*)(&normal_mantu);
+    int32_t x_pow = (int32_t)exp - (int32_t)FLOAT_OFFSET_ + extra_pow;
 
     const size_t ind = mant >> (FLOAT_MANT_SIZE - TABLE_BIT_CNT);
 
-    const double r = (double)R_TABLE[ind] * (double)normal_mant - 1.; // use double because near 1 float accuracy is not enough
+    uint32_t adj_exp = FLOAT_OFFSET_;
+    if (ind >= CAT_IND) {
+        ++x_pow;
+        --adj_exp;
+    }
+
+    const uint32_t normal_mantu = (adj_exp << FLOAT_MANT_SIZE) | mant;
+    const float normal_mant = as_float(normal_mantu);
+
+    const float r = R_TABLE[ind] * normal_mant - 1.f;
 
 //---------------------------------------POLYNOM----------------------------------------------------
 
-    const double p = r * (FLOAT_C1 + r * (FLOAT_C2 + r * FLOAT_C3));
+    const float p = r * r * 
+                (FLOAT_C2 + r *
+                    (FLOAT_C3 + r));
+
+    // const float p = r * (1.f + r * (-0.4999999701976776123046875f + r * 0.333331406116485595703125f));
 
 //---------------------------------------RECONSTRUCTION---------------------------------------------
 
-    const double res = (double)x_pow * LN2_ + T_TABLE[ind] + p;
+    float low_part = T_TABLE_LO[ind] + p + ((float)x_pow * LN2_LO);
 
-    if ((double)(float)res != res) {
-        feraiseexcept(FE_INEXACT);
-    }
+    float high_part = T_TABLE_HI[ind] + ((float)x_pow * LN2_HI);
 
-    return (float)res;
+    const float res = (low_part + r) + high_part;
+
+    // if ((double)(float)res != res) { //TODO check
+    //     feraiseexcept(FE_INEXACT);
+    // }
+
+    return res;
 }

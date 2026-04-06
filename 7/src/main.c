@@ -39,10 +39,10 @@ int main(const int argc, char* const argv[])
 
     const float testcase_spec[] = {
         0.0f, -0.0f, INFINITY, -INFINITY, NAN, -1.0f, 1.0f, //special
-        (*(float*)&(uint32_t){0x00800000u}),  // min normal
-        (*(float*)&(uint32_t){0x7f7fffffu}),  // max normal
-        (*(float*)&(uint32_t){0x007FFFFFu}),  // max denormal
-        (*(float*)&(uint32_t){0x00000001u}),  // min denormal
+        as_float(0x00800000u),  // min normal
+        as_float(0x7f7fffffu),  // max normal
+        as_float(0x007FFFFFu),  // max denormal
+        as_float(0x00000001u),  // min denormal
         2.f, 8.f, 0.5f, 0.125f, // 2^n
         1073741824.0f, // 2^30
         1.4142135f, 1.4142136f, // sqrt(2)
@@ -62,8 +62,7 @@ int main(const int argc, char* const argv[])
     const size_t testcase_rand_size = sizeof(testcase_rand) / sizeof(*testcase_rand);
 
     for (size_t test_ind = 0; test_ind < testcase_rand_size; ++test_ind) {
-        static_assert(sizeof(float) == sizeof(int), "For bitcast");
-        testcase_rand[test_ind] = (*(float*)&(int32_t){rand()});
+        testcase_rand[test_ind] = as_float((uint32_t)rand());
     }
 
 //Testcase
@@ -84,6 +83,24 @@ int main(const int argc, char* const argv[])
     const size_t testcase_flags_size = sizeof(testcase_flags) / sizeof(*testcase_flags);
 
 //Testing
+
+// {
+//     // mpfr_t ln;
+//     // mpfr_inits2(1024, ln, NULL);
+//     // mpfr_set_ui(ln, 2ul, MPFR_RNDN);
+//     // mpfr_log(ln, ln, MPFR_RNDN);
+
+//     // float ln_hi = mpfr_get_flt(ln, MPFR_RNDD);
+//     // mpfr_sub_d(ln, ln, (double)ln_hi, MPFR_RNDN);
+//     // float ln_lo = mpfr_get_flt(ln, MPFR_RNDN);
+
+//     // printf(
+//     //     "%.80ef\n%.80ef\n", 
+//     //     ln_hi, ln_lo
+//     // );
+
+//     return 0;
+// }
 
     int npassed_cnt = 0;
     int res = 0;
