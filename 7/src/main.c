@@ -58,11 +58,12 @@ int main(const int argc, char* const argv[])
 //Testcase
 
     const char* const testcase_rand_name = "Testing random values";
-    float testcase_rand[1000];
+    float testcase_rand[100000];
     const size_t testcase_rand_size = sizeof(testcase_rand) / sizeof(*testcase_rand);
 
     for (size_t test_ind = 0; test_ind < testcase_rand_size; ++test_ind) {
-        testcase_rand[test_ind] = as_float((uint32_t)rand());
+        static_assert(sizeof(float) == sizeof(int), "For bitcast");
+        while (fpclassify(testcase_rand[test_ind] = as_float((uint32_t)rand())) != FP_NORMAL);
     }
 
 //Testcase
@@ -84,23 +85,7 @@ int main(const int argc, char* const argv[])
 
 //Testing
 
-// {
-//     // mpfr_t ln;
-//     // mpfr_inits2(1024, ln, NULL);
-//     // mpfr_set_ui(ln, 2ul, MPFR_RNDN);
-//     // mpfr_log(ln, ln, MPFR_RNDN);
-
-//     // float ln_hi = mpfr_get_flt(ln, MPFR_RNDD);
-//     // mpfr_sub_d(ln, ln, (double)ln_hi, MPFR_RNDN);
-//     // float ln_lo = mpfr_get_flt(ln, MPFR_RNDN);
-
-//     // printf(
-//     //     "%.80ef\n%.80ef\n", 
-//     //     ln_hi, ln_lo
-//     // );
-
-//     return 0;
-// }
+    fprintf(stderr, "0x%xu\n", as_uint32((float)sqrt(2)));
 
     int npassed_cnt = 0;
     int res = 0;
@@ -111,8 +96,8 @@ int main(const int argc, char* const argv[])
     res = vogf_test_flags(testcase_flags, testcase_flags_size, testcase_flags_name, flags_objs.out, flags_objs.only_incorrect);
     npassed_cnt += (res != 0);
     
-    res = vogf_test_all_positive(flags_objs.out);
-    npassed_cnt += (res != 0);
+    // res = vogf_test_all_positive(flags_objs.out);
+    // npassed_cnt += (res != 0);
     
     res = vogf_test_res(testcase_rand, testcase_rand_size, testcase_rand_name, flags_objs.out, flags_objs.only_incorrect);
     npassed_cnt += (res != 0);

@@ -109,8 +109,8 @@ int vogf_test_res(
         if (!only_incorrect || ulp_error > CRITICAL_ULP_ERROR_) {
             fprintf(
                 output,
-                "x: %.20e\t|\tVogf: %.20e\t|\t Expected: %.20e\t|\tULP Error: %.3f\n", 
-                test_num, res_vogf, (float)expected, ulp_error
+                "x: %.20e (0x%xu)\t|\tVogf: %.20e\t|\t Expected: %.20e\t|\tULP Error: %.3f\n", 
+                test_num, as_uint32(test_num), res_vogf, (float)expected, ulp_error
             );
         }
 
