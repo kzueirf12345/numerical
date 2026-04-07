@@ -175,7 +175,7 @@ int vogf_test_all_positive(FILE* const output) {
         float local_max_ulp = 0.0f;
 
         #pragma omp for schedule(static, 1048576) // 2^20
-        for (uint32_t i = as_uint32(0.9f); i <= as_uint32(1.1f); ++i) {
+        for (uint32_t i = 0; i <= max_bits; ++i) {
             static_assert(sizeof(float) == sizeof(i), "for bit cast");
             float test_num = as_float(i);
 
@@ -194,8 +194,8 @@ int vogf_test_all_positive(FILE* const output) {
                 {
                     fprintf(
                         output,
-                        "\nx: %.20e\t|\tVogf: %.20e\t|\t Expected: %.20e\t|\tULP Error: %.3f\n", 
-                        test_num, res_vogf, (float)expected, ulp_error
+                        "\nx: %.20e (0x%xu)\t|\tVogf: %.20e\t|\t Expected: %.20e\t|\tULP Error: %.3f\n", 
+                        test_num, as_uint32(test_num), res_vogf, (float)expected, ulp_error
                     );
                     ++local_failed;
                 }
@@ -274,10 +274,10 @@ int vogf_test_flags(
             fprintf(
                 output,
                 "%s"
-                "x: %.20e\t|\tvogf_errno: %x\t|\tvogf_fenv: %x\t|\tlogf_errno: %x\t|\tlogf_fenv: %x\t\n"
+                "x: %.20e (0x%xu)\t|\tvogf_errno: %x\t|\tvogf_fenv: %x\t|\tlogf_errno: %x\t|\tlogf_fenv: %x\t\n"
                 "Desc: '%s'\n",
                 (incorrect ? (colored_text_supported ? RED_TEXT("INCORRECT\n")  : "INCORRECT\n") : ""),
-                test_num, (unsigned)vogf_errno, (unsigned)vogf_fenv, (unsigned)logf_errno, (unsigned)logf_fenv,
+                test_num, as_uint32(test_num), (unsigned)vogf_errno, (unsigned)vogf_fenv, (unsigned)logf_errno, (unsigned)logf_fenv,
                 test.desc
             );
         }

@@ -7,7 +7,8 @@
 // L1d = 2^18 byte = 2^15 double (reserve 2^15/2/2= 2^13)
 #define K (13u)
 
-#define FLOAT_MANT_SIZE 23
+#define FLOAT_MANT_SIZE     (23u)
+#define FLOAT_MANT_MASK     ((1u << FLOAT_MANT_SIZE) - 1u)
 
 int main() {
     const size_t size = (1u << K);
@@ -34,7 +35,7 @@ int main() {
         mpfr_div_2ui(x_val, x_val, 23, MPFR_RNDN);
         mpfr_add_d(x_val, x_val, 1.0, MPFR_RNDN);
 
-        if (mant_bits > (0x3f2aaaab & ((1u << FLOAT_MANT_SIZE) - 1u))) {
+        if (mant_bits > (0x3f2aaaab & FLOAT_MANT_MASK)) {
             mpfr_div_ui(x_val, x_val, 2, MPFR_RNDN);
         }
 

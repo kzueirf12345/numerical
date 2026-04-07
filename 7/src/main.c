@@ -96,8 +96,8 @@ int main(const int argc, char* const argv[])
     res = vogf_test_flags(testcase_flags, testcase_flags_size, testcase_flags_name, flags_objs.out, flags_objs.only_incorrect);
     npassed_cnt += (res != 0);
     
-    // res = vogf_test_all_positive(flags_objs.out);
-    // npassed_cnt += (res != 0);
+    res = vogf_test_all_positive(flags_objs.out);
+    npassed_cnt += (res != 0);
     
     res = vogf_test_res(testcase_rand, testcase_rand_size, testcase_rand_name, flags_objs.out, flags_objs.only_incorrect);
     npassed_cnt += (res != 0);
