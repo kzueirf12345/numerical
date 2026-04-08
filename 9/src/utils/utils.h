@@ -29,6 +29,8 @@
 
 #define POISON_UINT32 (uint32_t)(0xDEADBEAFu)
 
+#define FLOAT_EPSILON (1e-10f)
+
 #define INT_ERROR_HANDLE(call_func, ...)                                                            \
     do {                                                                                            \
         int error_handler = call_func;                                                              \

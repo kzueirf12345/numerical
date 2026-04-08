@@ -3,6 +3,7 @@
 
 #include <assert.h>
 #include <stdio.h>
+#include <stdbool.h>
 
 enum FlagsError
 {
@@ -29,12 +30,18 @@ typedef struct FlagsObjs
 {
     char log_folder [FILENAME_MAX + 1];
 
-    // char in_filename[FILENAME_MAX + 1];
-    // char out_filename[FILENAME_MAX + 1];
+    unsigned int seed;
 
-    // FILE* out;
+    bool need_help;
 
 } flags_objs_t;
+
+#define HELP_MESSAGE \
+    "Usage: matmul.out [OPTIONS]\n" \
+    "Options:\n" \
+    "\t-l <FOLDER>            Specify folder for logs (default: ./log/)\n" \
+    "\t-s <VALUE>             Specify seed for testing random values (default: random)\n" \
+    "\t-h                     Show this help message\n"
 
 enum FlagsError flags_objs_ctor (flags_objs_t* const flags_objs);
 enum FlagsError flags_objs_dtor (flags_objs_t* const flags_objs);
