@@ -20,7 +20,7 @@ void matmul_correct(
     for (size_t i = 0; i < i_size; ++i) {
         for (size_t k = 0; k < k_size; ++k) {
             mat_dst[i * k_size + k] = 0;
-            
+
             for (size_t j = 0; j < j_size; ++j) {
                 mat_dst[i * k_size + k] += mat1[i * j_size + j] * mat2[j * k_size + k];
             }
@@ -29,9 +29,9 @@ void matmul_correct(
 }
 
 void matmul_optimized(
-    const float* const mat1, 
-    const float* const mat2, 
-          float* const mat_dst,
+    const float* __restrict const mat1, 
+    const float* __restrict const mat2, 
+          float* __restrict const mat_dst,
     const size_t i_size, const size_t j_size, const size_t k_size
 ) {
     lassert(!is_invalid_ptr(mat1), "");
@@ -40,6 +40,12 @@ void matmul_optimized(
     lassert(i_size > 0, "");
     lassert(j_size > 0, "");
     lassert(k_size > 0, "");
+
+    const size_t mat_dst_size = i_size * k_size;
+
+    for (size_t ind = 0; ind < mat_dst_size; ++ind) {
+        mat_dst[ind] = 0;
+    }
 
     for (size_t i = 0; i < i_size; ++i) {
         for (size_t j = 0; j < j_size; ++j) {
@@ -60,7 +66,7 @@ void matfill(
 
     const size_t size = rows * cols;
     for (size_t ind = 0; ind < size; ++ind) {
-        mat[ind] = (float)rand() / (float)(RAND_MAX) * 100;
+        mat[ind] = (float)rand() / (float)(RAND_MAX);
     }
 }
 

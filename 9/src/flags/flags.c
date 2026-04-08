@@ -36,6 +36,8 @@ enum FlagsError flags_objs_ctor(flags_objs_t* const flags_objs)
 
     flags_objs->need_help = false;
 
+    flags_objs->iterations_cnt = 100000;
+
     return FLAGS_ERROR_SUCCESS;
 }
 
@@ -54,7 +56,7 @@ enum FlagsError flags_processing(flags_objs_t* const flags_objs,
     lassert(argc, "");
 
     int getopt_rez = 0;
-    while ((getopt_rez = getopt(argc, argv, "hl:s:")) != -1)
+    while ((getopt_rez = getopt(argc, argv, "hl:s:n:")) != -1)
     {
         switch (getopt_rez)
         {
@@ -83,6 +85,17 @@ enum FlagsError flags_processing(flags_objs_t* const flags_objs,
                 flags_objs->need_help = true;
                 break;
             }
+            case 'n':
+            {
+                if (sscanf(optarg, "%zu", &flags_objs->iterations_cnt) != 1)
+                {
+                    perror("Can't sscanf flags_objs->iterations_cnt");
+                    return FLAGS_ERROR_FAILURE;
+                }
+
+                break;
+            }
+
             default:
             {
                 fprintf(stderr, "Getopt error - d: %d, c: %c\n", getopt_rez, (char)getopt_rez);

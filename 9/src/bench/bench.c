@@ -25,11 +25,15 @@ unsigned long long matbench(
 
     matmul(mat1, mat2, mat_dst, i_size, j_size, k_size);
 
+    __asm__ volatile("" : : "g" (mat_dst) : "memory");
+
     unsigned int $dummy$ = 0;
     unsigned long long start = __rdtscp(&$dummy$);
 
     for (size_t iteration = 0; iteration < iterations_cnt; ++iteration) {
         matmul(mat1, mat2, mat_dst, i_size, j_size, k_size);
+
+        __asm__ volatile("" : : "g" (mat_dst) : "memory");
     }
 
     unsigned long long end = __rdtscp(&$dummy$);

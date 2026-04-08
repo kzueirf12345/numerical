@@ -27,10 +27,10 @@ int main(const int argc, char* const argv[])
 
     srand(flags_objs.seed);
 
-    const size_t a_rows = 64;
+    const size_t a_rows = 32;
     const size_t a_cols = 64;
     const size_t b_rows = a_cols;
-    const size_t b_cols = 128;
+    const size_t b_cols = 16;
 
     float* const a = (float*)calloc(a_rows * a_cols, sizeof(*a));
     float* const b = (float*)calloc(b_rows * b_cols, sizeof(*b));
@@ -60,10 +60,12 @@ int main(const int argc, char* const argv[])
        : RED_TEXT("NOT EQUAL!"))
     );
 
-    const size_t iterations_cnt = 10000;
-
-    const unsigned long long clks_correct   = matbench(iterations_cnt, matmul_correct,   a, b, c1, c_rows, a_cols, c_cols);
-    const unsigned long long clks_optimized = matbench(iterations_cnt, matmul_optimized, a, b, c2, c_rows, a_cols, c_cols);
+    const unsigned long long clks_correct   = matbench(
+        flags_objs.iterations_cnt, matmul_correct,   a, b, c1, c_rows, a_cols, c_cols
+    );
+    const unsigned long long clks_optimized = matbench(
+        flags_objs.iterations_cnt, matmul_optimized, a, b, c2, c_rows, a_cols, c_cols
+    );
 
     const double optimized_percent = 100. - 100. * (double)clks_optimized / (double)clks_correct; 
 
@@ -76,7 +78,8 @@ int main(const int argc, char* const argv[])
             "clks_optimized:    %llu\n"
             "optimized_percent: %.2lf%%\n"
         ), 
-        c_rows, a_cols, c_cols, iterations_cnt, clks_correct, clks_optimized, optimized_percent
+        c_rows, a_cols, c_cols, flags_objs.iterations_cnt, 
+        clks_correct, clks_optimized, optimized_percent
     );
 
     free(a);

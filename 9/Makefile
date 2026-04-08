@@ -31,7 +31,7 @@ SANITIZER = -fsanitize=address,alignment,bool,bounds,enum,float-cast-overflow,fl
 		shift,signed-integer-overflow,undefined,unreachable,vla-bound,vptr -static-libasan
 
 DEBUG_FLAGS = -D _DEBUG  -ggdb -Og -g3 -D_FORTIFY_SOURCES=3 $(SANITIZER)
-RELEASE_FLAGS = -DNDEBUG -O2
+RELEASE_FLAGS = -DNDEBUG -O3
 
 ifneq ($(DEBUG_),0)
 FLAGS += $(DEBUG_FLAGS)
@@ -109,3 +109,27 @@ clean_txt:
 
 clean_bin:
 	rm -rf ./*.bin
+
+
+# -ffp-contract=off для отключения fma
+BENCH_FLAGS = -march=native -fno-omit-frame-pointer
+
+CPU_CORE = 0
+GOVERNOR = performance
+AMD_BOOST = /sys/devices/system/cpu/cpufreq/boost
+
+.PHONY: bench setup_cpu restore_cpu
+
+bench: clean_out
+	$(MAKE) DEBUG_=0 ADD_FLAGS="$(BENCH_FLAGS)" rebuild
+	@$(MAKE) setup_cpu
+	sudo taskset -c $(CPU_CORE) chrt -f 99 ./$(PROJECT_NAME).out $(OPTS)
+	@$(MAKE) restore_cpu
+
+setup_cpu:
+	sudo cpupower frequency-set -g $(GOVERNOR)
+	if [ -f $(AMD_BOOST) ]; then echo 0 | sudo tee $(AMD_BOOST); fi
+
+restore_cpu:
+	sudo cpupower frequency-set -g powersave
+	if [ -f $(AMD_BOOST) ]; then echo 1 | sudo tee $(AMD_BOOST); fi

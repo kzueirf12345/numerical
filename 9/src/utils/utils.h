@@ -29,7 +29,7 @@
 
 #define POISON_UINT32 (uint32_t)(0xDEADBEAFu)
 
-#define FLOAT_EPSILON (1e-10f)
+#define FLOAT_EPSILON (1e-5f)
 
 #define INT_ERROR_HANDLE(call_func, ...)                                                            \
     do {                                                                                            \

@@ -14,9 +14,9 @@ void matmul_correct(
 );
 
 void matmul_optimized(
-    const float* const mat1, 
-    const float* const mat2, 
-          float* const mat_dst,
+    const float* __restrict const mat1, 
+    const float* __restrict const mat2, 
+          float* __restrict const mat_dst,
     const size_t i_size, const size_t j_size, const size_t k_size
 );
 
