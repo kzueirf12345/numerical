@@ -6,6 +6,7 @@
 #include "logger/liblogger.h" // IWYU pragma: keep
 #include "flags/flags.h"
 #include "utils/concole.h"
+#include "bench/bench.h"
 
 int init_all(flags_objs_t* const flags_objs, const int argc, char* const * argv);
 int dtor_all(flags_objs_t* const flags_objs);
@@ -26,10 +27,10 @@ int main(const int argc, char* const argv[])
 
     srand(flags_objs.seed);
 
-    const size_t a_rows = 8;
-    const size_t a_cols = 8;
+    const size_t a_rows = 64;
+    const size_t a_cols = 64;
     const size_t b_rows = a_cols;
-    const size_t b_cols = 8;
+    const size_t b_cols = 128;
 
     float* const a = (float*)calloc(a_rows * a_cols, sizeof(*a));
     float* const b = (float*)calloc(b_rows * b_cols, sizeof(*b));
@@ -37,8 +38,8 @@ int main(const int argc, char* const argv[])
     matfill(a, a_rows, a_cols);
     matfill(b, b_rows, b_cols);
 
-    matprint(stdout, a, a_rows, a_cols);
-    matprint(stdout, b, b_rows, b_cols);
+    // matprint(stdout, a, a_rows, a_cols);
+    // matprint(stdout, b, b_rows, b_cols);
 
     const size_t c_rows = a_rows;
     const size_t c_cols = b_cols;
@@ -49,14 +50,33 @@ int main(const int argc, char* const argv[])
     matmul_correct  (a, b, c1, c_rows, a_cols, c_cols);
     matmul_optimized(a, b, c2, c_rows, a_cols, c_cols);
 
-    matprint(stdout, c1, c_rows, c_cols);
-    matprint(stdout, c2, c_rows, c_cols);
+    // matprint(stdout, c1, c_rows, c_cols);
+    // matprint(stdout, c2, c_rows, c_cols);
 
     printf(
         "\n%s\n", 
         (mat_is_equal(c1, c2, c_rows, c_cols) 
        ? GREEN_TEXT("IS EQUAL!") 
        : RED_TEXT("NOT EQUAL!"))
+    );
+
+    const size_t iterations_cnt = 10000;
+
+    const unsigned long long clks_correct   = matbench(iterations_cnt, matmul_correct,   a, b, c1, c_rows, a_cols, c_cols);
+    const unsigned long long clks_optimized = matbench(iterations_cnt, matmul_optimized, a, b, c2, c_rows, a_cols, c_cols);
+
+    const double optimized_percent = 100. - 100. * (double)clks_optimized / (double)clks_correct; 
+
+    printf(
+        YELLOW_TEXT(
+            "\n===Benchmarking===\n"
+            "sizes: [%zu X %zu X %zu]\n"
+            "iterations_cnt:    %zu\n"
+            "clks_correct:      %llu\n"
+            "clks_optimized:    %llu\n"
+            "optimized_percent: %.2lf%%\n"
+        ), 
+        c_rows, a_cols, c_cols, iterations_cnt, clks_correct, clks_optimized, optimized_percent
     );
 
     free(a);

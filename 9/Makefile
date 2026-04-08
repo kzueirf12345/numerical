@@ -46,10 +46,10 @@ FLAGS += $(ADD_FLAGS)
 LIBS = -lm -L./libs/logger -llogger 
 
 
-DIRS = flags utils matrix
+DIRS = flags utils matrix bench
 BUILD_DIRS = $(DIRS:%=$(BUILD_DIR)/%)
 
-SOURCES = main.c flags/flags.c utils/utils.c matrix/funcs.c
+SOURCES = main.c flags/flags.c utils/utils.c matrix/funcs.c bench/bench.c
 
 SOURCES_REL_PATH = $(SOURCES:%=$(SRC_DIR)/%)
 OBJECTS_REL_PATH = $(SOURCES:%.c=$(BUILD_DIR)/%.o)
