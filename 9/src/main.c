@@ -1,3 +1,4 @@
+#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -60,32 +61,48 @@ int main(const int argc, char* const argv[])
        : RED_TEXT("NOT EQUAL!"))
     );
 
-    const unsigned long long clks_correct   = matbench(
-        flags_objs.iterations_cnt, matmul_correct,   a, b, c1, c_rows, a_cols, c_cols
-    );
-    const unsigned long long clks_optimized = matbench(
-        flags_objs.iterations_cnt, matmul_optimized, a, b, c2, c_rows, a_cols, c_cols
+    free(a);
+    free(b);
+    free(c1);
+    free(c2);
+
+    double mean_correct,   disp_correct;
+    double mean_optimized, disp_optimized;
+
+    MAT_BENCH_ERROR_HANDLE(
+        matbench(
+            flags_objs.iterations_cnt, flags_objs.buckets_cnt, matmul_correct, c_rows, a_cols, c_cols, 
+            &mean_correct, &disp_correct
+        )
     );
 
-    const double optimized_percent = 100. - 100. * (double)clks_optimized / (double)clks_correct; 
+    MAT_BENCH_ERROR_HANDLE(
+        matbench(
+            flags_objs.iterations_cnt, flags_objs.buckets_cnt, matmul_optimized, c_rows, a_cols, c_cols, 
+            &mean_optimized, &disp_optimized
+        )
+    );
+
+    const double ratio = mean_correct / mean_optimized; 
+
+    const double rel_err_optimized_2 = disp_optimized / (mean_optimized * mean_optimized);
+    const double rel_err_correct_2 = disp_correct / (mean_correct * mean_correct);
+    const double ratio_stddev = ratio * sqrt(rel_err_correct_2 + rel_err_optimized_2); 
 
     printf(
         YELLOW_TEXT(
             "\n===Benchmarking===\n"
             "sizes: [%zu X %zu X %zu]\n"
+            "buckets_cnt:       %zu\n"
             "iterations_cnt:    %zu\n"
-            "clks_correct:      %llu\n"
-            "clks_optimized:    %llu\n"
-            "optimized_percent: %.2lf%%\n"
+            "clks_correct:      %lg +/- %lg\n"
+            "clks_optimized:    %lg +/- %lg\n"
+            "ratio:             %lg +/- %lg\n"
         ), 
-        c_rows, a_cols, c_cols, flags_objs.iterations_cnt, 
-        clks_correct, clks_optimized, optimized_percent
+        c_rows, a_cols, c_cols, flags_objs.iterations_cnt, flags_objs.buckets_cnt,
+        mean_correct, sqrt(disp_correct), mean_optimized, sqrt(disp_optimized),
+        ratio, ratio_stddev
     );
-
-    free(a);
-    free(b);
-    free(c1);
-    free(c2);
 
     INT_ERROR_HANDLE(                                                        dtor_all(&flags_objs));
 

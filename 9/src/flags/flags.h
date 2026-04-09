@@ -33,6 +33,7 @@ typedef struct FlagsObjs
     unsigned int seed;
 
     size_t iterations_cnt;
+    size_t buckets_cnt;
 
     bool need_help;
 
@@ -43,7 +44,8 @@ typedef struct FlagsObjs
     "Options:\n" \
     "\t-l <FOLDER>            Specify folder for logs (default: ./log/)\n" \
     "\t-s <VALUE>             Specify seed for testing random values (default: random)\n" \
-    "\t-n <VALUE>             Specify iterations count (default: 100000)\n" \
+    "\t-b <VALUE>             Specify buckets count (default: 10)\n" \
+    "\t-n <VALUE>             Specify iterations count by one bucket (default: 50000)\n" \
     "\t-h                     Show this help message\n"
 
 enum FlagsError flags_objs_ctor (flags_objs_t* const flags_objs);

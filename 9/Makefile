@@ -112,11 +112,12 @@ clean_bin:
 
 
 # -ffp-contract=off для отключения fma
-BENCH_FLAGS = -march=native -fno-omit-frame-pointer
+BENCH_FLAGS = -march=native
 
 CPU_CORE = 0
 GOVERNOR = performance
 AMD_BOOST = /sys/devices/system/cpu/cpufreq/boost
+FIXED_FREQ = 3000MHz 
 
 .PHONY: bench setup_cpu restore_cpu
 
@@ -127,7 +128,7 @@ bench: clean_out
 	@$(MAKE) restore_cpu
 
 setup_cpu:
-	sudo cpupower frequency-set -g $(GOVERNOR)
+	sudo cpupower frequency-set -u $(FIXED_FREQ) -d $(FIXED_FREQ) -g $(GOVERNOR)
 	if [ -f $(AMD_BOOST) ]; then echo 0 | sudo tee $(AMD_BOOST); fi
 
 restore_cpu:

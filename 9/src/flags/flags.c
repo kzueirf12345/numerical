@@ -36,7 +36,8 @@ enum FlagsError flags_objs_ctor(flags_objs_t* const flags_objs)
 
     flags_objs->need_help = false;
 
-    flags_objs->iterations_cnt = 100000;
+    flags_objs->iterations_cnt = 50000;
+    flags_objs->buckets_cnt = 10;
 
     return FLAGS_ERROR_SUCCESS;
 }
@@ -56,7 +57,7 @@ enum FlagsError flags_processing(flags_objs_t* const flags_objs,
     lassert(argc, "");
 
     int getopt_rez = 0;
-    while ((getopt_rez = getopt(argc, argv, "hl:s:n:")) != -1)
+    while ((getopt_rez = getopt(argc, argv, "hl:s:n:b:")) != -1)
     {
         switch (getopt_rez)
         {
@@ -90,6 +91,16 @@ enum FlagsError flags_processing(flags_objs_t* const flags_objs,
                 if (sscanf(optarg, "%zu", &flags_objs->iterations_cnt) != 1)
                 {
                     perror("Can't sscanf flags_objs->iterations_cnt");
+                    return FLAGS_ERROR_FAILURE;
+                }
+
+                break;
+            }
+            case 'b':
+            {
+                if (sscanf(optarg, "%zu", &flags_objs->buckets_cnt) != 1)
+                {
+                    perror("Can't sscanf flags_objs->buckets_cnt");
                     return FLAGS_ERROR_FAILURE;
                 }
 
