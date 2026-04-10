@@ -20,6 +20,13 @@ void matmul_optimized(
     const size_t i_size, const size_t j_size, const size_t k_size
 );
 
+void matmul_optimized2(
+    const float* restrict const mat1, 
+    const float* restrict const mat2, 
+          float* restrict const mat_dst,
+    const size_t i_size, const size_t j_size, const size_t k_size
+);
+
 void matfill(
     float* const mat,
     const size_t rows, const size_t cols

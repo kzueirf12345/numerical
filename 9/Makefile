@@ -112,7 +112,7 @@ clean_bin:
 
 
 # -ffp-contract=off для отключения fma
-BENCH_FLAGS = -march=native
+BENCH_FLAGS = -march=native -mprefer-vector-width=512 -ffast-math -fopt-info-vec-optimized
 
 CPU_CORE = 0
 GOVERNOR = performance

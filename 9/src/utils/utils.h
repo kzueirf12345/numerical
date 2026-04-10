@@ -31,6 +31,8 @@
 
 #define FLOAT_EPSILON (1e-5f)
 
+#define ALIGNMENT (64)
+
 #define INT_ERROR_HANDLE(call_func, ...)                                                            \
     do {                                                                                            \
         int error_handler = call_func;                                                              \

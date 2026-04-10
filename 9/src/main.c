@@ -33,8 +33,8 @@ int main(const int argc, char* const argv[])
     const size_t b_rows = a_cols;
     const size_t b_cols = 16;
 
-    float* const a = (float*)calloc(a_rows * a_cols, sizeof(*a));
-    float* const b = (float*)calloc(b_rows * b_cols, sizeof(*b));
+    float* const a = (float*)aligned_alloc(ALIGNMENT, a_rows * a_cols * sizeof(*a));
+    float* const b = (float*)aligned_alloc(ALIGNMENT, b_rows * b_cols * sizeof(*b));
 
     matfill(a, a_rows, a_cols);
     matfill(b, b_rows, b_cols);
@@ -45,11 +45,11 @@ int main(const int argc, char* const argv[])
     const size_t c_rows = a_rows;
     const size_t c_cols = b_cols;
 
-    float* const c1 = (float*)calloc(c_rows * c_cols, sizeof(*c1));
-    float* const c2 = (float*)calloc(c_rows * c_cols, sizeof(*c2));
+    float* const c1 = (float*)aligned_alloc(ALIGNMENT, c_rows * c_cols * sizeof(*c1));
+    float* const c2 = (float*)aligned_alloc(ALIGNMENT, c_rows * c_cols * sizeof(*c2));
 
-    matmul_correct  (a, b, c1, c_rows, a_cols, c_cols);
-    matmul_optimized(a, b, c2, c_rows, a_cols, c_cols);
+    matmul_optimized  (a, b, c1, c_rows, a_cols, c_cols);
+    matmul_optimized2(a, b, c2, c_rows, a_cols, c_cols);
 
     // matprint(stdout, c1, c_rows, c_cols);
     // matprint(stdout, c2, c_rows, c_cols);
@@ -71,14 +71,14 @@ int main(const int argc, char* const argv[])
 
     MAT_BENCH_ERROR_HANDLE(
         matbench(
-            flags_objs.iterations_cnt, flags_objs.buckets_cnt, matmul_correct, c_rows, a_cols, c_cols, 
+            flags_objs.iterations_cnt, flags_objs.buckets_cnt, matmul_optimized, c_rows, a_cols, c_cols, 
             &mean_correct, &disp_correct
         )
     );
 
     MAT_BENCH_ERROR_HANDLE(
         matbench(
-            flags_objs.iterations_cnt, flags_objs.buckets_cnt, matmul_optimized, c_rows, a_cols, c_cols, 
+            flags_objs.iterations_cnt, flags_objs.buckets_cnt, matmul_optimized2, c_rows, a_cols, c_cols, 
             &mean_optimized, &disp_optimized
         )
     );

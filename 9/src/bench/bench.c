@@ -1,5 +1,6 @@
 #include <limits.h>
 #include <math.h>
+#include <stdlib.h>
 #include <x86intrin.h>
 #include <time.h>
 
@@ -37,14 +38,14 @@ enum MatBenchError matbench(
     lassert(j_size > 0, "");
     lassert(k_size > 0, "");
 
-    float* const mat1       = (float*)calloc(i_size * j_size, sizeof(*mat1));
+    float* const mat1       = (float*) aligned_alloc(ALIGNMENT, i_size * j_size * sizeof(*mat1));
 
     if (!mat1) {
         perror("Can't calloc mat1");
         return MAT_BENCH_ERROR_STANDARD_ERRNO;
     }
 
-    float* const mat2       = (float*)calloc(j_size * k_size, sizeof(*mat2));
+    float* const mat2       = (float*) aligned_alloc(ALIGNMENT, j_size * k_size * sizeof(*mat1));
 
     if (!mat2) {
         perror("Can't calloc mat2");
@@ -52,7 +53,7 @@ enum MatBenchError matbench(
         return MAT_BENCH_ERROR_STANDARD_ERRNO;
     }
 
-    float* const mat_dst    = (float*)calloc(i_size * k_size, sizeof(*mat_dst));
+    float* const mat_dst    = (float*) aligned_alloc(ALIGNMENT, i_size * k_size * sizeof(*mat1));
 
     if (!mat_dst) {
         perror("Can't calloc mat_dst");
