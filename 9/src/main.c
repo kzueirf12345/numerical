@@ -48,8 +48,8 @@ int main(const int argc, char* const argv[])
     float* const c1 = (float*)aligned_alloc(ALIGNMENT, c_rows * c_cols * sizeof(*c1));
     float* const c2 = (float*)aligned_alloc(ALIGNMENT, c_rows * c_cols * sizeof(*c2));
 
-    matmul_optimized  (a, b, c1, c_rows, a_cols, c_cols);
-    matmul_optimized2(a, b, c2, c_rows, a_cols, c_cols);
+    matmul_correct(a, b, c1, c_rows, a_cols, c_cols);
+    matmul_optimized3(a, b, c2, c_rows, a_cols, c_cols);
 
     // matprint(stdout, c1, c_rows, c_cols);
     // matprint(stdout, c2, c_rows, c_cols);
@@ -71,17 +71,18 @@ int main(const int argc, char* const argv[])
 
     MAT_BENCH_ERROR_HANDLE(
         matbench(
-            flags_objs.iterations_cnt, flags_objs.buckets_cnt, matmul_optimized, c_rows, a_cols, c_cols, 
+            flags_objs.iterations_cnt, flags_objs.buckets_cnt, matmul_correct, c_rows, a_cols, c_cols, 
             &mean_correct, &disp_correct
         )
     );
 
     MAT_BENCH_ERROR_HANDLE(
         matbench(
-            flags_objs.iterations_cnt, flags_objs.buckets_cnt, matmul_optimized2, c_rows, a_cols, c_cols, 
+            flags_objs.iterations_cnt, flags_objs.buckets_cnt, matmul_optimized3, c_rows, a_cols, c_cols, 
             &mean_optimized, &disp_optimized
         )
     );
+
 
     const double ratio = mean_correct / mean_optimized; 
 
@@ -95,8 +96,8 @@ int main(const int argc, char* const argv[])
             "sizes: [%zu X %zu X %zu]\n"
             "buckets_cnt:       %zu\n"
             "iterations_cnt:    %zu\n"
-            "clks_correct:      %lg +/- %lg\n"
-            "clks_optimized:    %lg +/- %lg\n"
+            "clks_optimized2:   %lg +/- %lg\n"
+            "clks_optimized3:   %lg +/- %lg\n"
             "ratio:             %lg +/- %lg\n"
         ), 
         c_rows, a_cols, c_cols, flags_objs.iterations_cnt, flags_objs.buckets_cnt,

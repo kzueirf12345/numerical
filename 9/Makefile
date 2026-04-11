@@ -122,7 +122,7 @@ FIXED_FREQ = 3000MHz
 .PHONY: bench setup_cpu restore_cpu
 
 bench: clean_out
-	$(MAKE) DEBUG_=0 ADD_FLAGS="$(BENCH_FLAGS)" rebuild
+	$(MAKE) DEBUG_=0 ADD_FLAGS="$(BENCH_FLAGS) $(ADD_FLAGS)" rebuild
 	@$(MAKE) setup_cpu
 	sudo taskset -c $(CPU_CORE) chrt -f 99 ./$(PROJECT_NAME).out $(OPTS)
 	@$(MAKE) restore_cpu
