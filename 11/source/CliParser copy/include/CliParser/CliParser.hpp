@@ -5,10 +5,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <iostream>
-#include <random>
 #include <string>
-
-namespace measurer {
 
 class CliParser {
 
@@ -16,9 +13,6 @@ public:
 
     struct Options {
         std::string output_file = "";
-        size_t buckets_cnt = 10;
-        size_t bucket_iterations_cnt = 50000;
-        uint64_t seed = std::random_device{}();
         bool verbose = false;
         bool help_requested = false;
     };
@@ -47,4 +41,3 @@ private:
 
 };
 
-} // namespace measurer

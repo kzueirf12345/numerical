@@ -37,11 +37,16 @@ endif()
 
 ###===========================================PACKAGES==============================================
 
-find_package(OpenMP REQUIRED)
+find_path(MPFR_INCLUDE_DIR mpfr.h)
+find_path(GMP_INCLUDE_DIR gmp.h)
+
+find_library(MPFR_LIBRARY mpfr)
+find_library(GMP_LIBRARY gmp)
 
 ###===========================================SUBDIRECTORY==========================================
 
 add_subdirectory(source/CliParser)
+add_subdirectory(source/Measurer)
 
 add_executable(measurer source/main.cpp)
 
@@ -54,5 +59,15 @@ if(SANITIZE AND NOT MSVC)
 endif()
 
 target_link_libraries(measurer PRIVATE
+    gmp
+    mpfr
+    m
+
     CliParser
+    Measurer
+)
+
+target_include_directories(measurer PRIVATE 
+    mpfr
+    gmp
 )

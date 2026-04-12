@@ -2,8 +2,6 @@
 
 #include "CliParser/CliParser.hpp"
 
-namespace measurer {
-
 CliParser::CliParser(int argc, char* argv[]) {
     parse(argc, argv);
 }
@@ -11,10 +9,7 @@ CliParser::CliParser(int argc, char* argv[]) {
 void CliParser::printHelp(std::ostream& output) {
     output << "Usage: hi_quad.out [OPTIONS]\n"
               "Options:\n"
-              "  -o, --output <FILE>        Specify output file (default: stdout)\n"
-              "  -b, --buckets <VALUE>      Specify buckets count (default: 10)\n"
-              "  -n, --iterations <VALUE>   Specify iterations count in bucket (default: 50000)\n"
-              "  -s, --seed <VALUE>         Specify seed for random (default: random)\n"
+              "  -o, --output <FILE>        Specify output file (default: data.json)\n"
               "  -v, --verbose              Output exectuion progress\n"
               "  -h, --help                 Show this help message\n";
 }
@@ -30,18 +25,6 @@ void CliParser::parse(int argc, char* argv[]) {
         else if (arg == "-o" || arg == "--output") {
             checkRequireArgument(i, argc, arg);
             options_.output_file = argv[++i];
-        }
-        else if (arg == "-b" || arg == "--buckets") {
-            checkRequireArgument(i, argc, arg);
-            options_.buckets_cnt = parseSize(argv[++i], "--buckets");
-        }
-        else if (arg == "-n" || arg == "--iterations") {
-            checkRequireArgument(i, argc, arg);
-            options_.bucket_iterations_cnt = parseSize(argv[++i], "--iterations");
-        }
-        else if (arg == "-s" || arg == "--seed") {
-            checkRequireArgument(i, argc, arg);
-            options_.seed = parseUint64(argv[++i], "--seed");
         }
         else if (arg == "-v" || arg == "--verbose") {
             options_.verbose = true;
@@ -88,5 +71,3 @@ size_t CliParser::parseSize(const char* str, const std::string& option) try {
 catch (...) {
     throw std::invalid_argument("Invalid size_t value for " + option + ": " + str);
 }
-
-} // namespace measurer
