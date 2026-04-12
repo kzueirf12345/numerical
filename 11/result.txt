@@ -1,0 +1,14 @@
+===Benchmarking Latency===
+buckets_cnt:       10
+iterations_cnt:    50000
+clks_mpfr:         4434.6 +/- 44.0611
+clks_libm:         152 +/- 0
+mpfr_div_libm:     29.175 +/- 0.289875
+
+===Benchmarking Throughput===
+buckets_cnt:       10
+batches_cnt:       50
+iterations_cnt:    10000
+clks_mpfr:         4859.31 +/- 133.601
+clks_libm:         20.4075 +/- 0.00196231
+mpfr_div_libm:     238.114 +/- 6.5467
