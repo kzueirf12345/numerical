@@ -7,7 +7,7 @@ CliParser::CliParser(int argc, char* argv[]) {
 }
 
 void CliParser::printHelp(std::ostream& output) {
-    output << "Usage: hi_quad.out [OPTIONS]\n"
+    output << "Usage: ./build/measurer [OPTIONS]\n"
               "Options:\n"
               "  -m, --mode <MODE_NAME>     Specify execution mode | "
               
@@ -19,7 +19,7 @@ void CliParser::printHelp(std::ostream& output) {
               "  -o, --output <FILE>        Specify output file (default: stdout)\n"
               "  -u, --buckets <VALUE>      Specify buckets count (default: 10)\n"
               "  -a, --batches <VALUE>      Specify batches count (default: 50)\n"
-              "  -n, --iterations <VALUE>   Specify iterations count in bucket or in batches (default: 50000)\n"
+              "  -n, --iterations <VALUE>   Specify iterations count in bucket or in batch (default: 50000)\n"
               "  -s, --seed <VALUE>         Specify seed for random (default: random)\n"
               "  -v, --verbose              Output exectuion progress\n"
               "  -h, --help                 Show this help message\n";

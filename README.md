@@ -208,3 +208,148 @@ $$
 При увеличении выборки дисперсия стремиться к 1/12.
 
 То есть значения мат ожидания и дисперсии совпадают с необходимыми.
+
+## 11 
+
+Библиотека для замера Latency и Throughput.
+
+### Зависимости
+
+| Зависимость           | Минимальная версия    | Назначение                                    |
+|-----------------------|-----------------------|-----------------------------------------------|
+| **make**              | 4.3                   | Удобная обёртка над cmake для бенчей          |
+| **g++**               | 11.4                  | Компиляция C++20 кода                         |
+| **cmake**             | 3.21                  | Сборка проекта                                |
+
+Если требуется прогнать тесты из main, а не просто подключить header, то требуется libm 2.35 и mpfr 4.1.0. Там тестируются логарифмы
+
+### Использование
+
+Если хотите использовать как only header библиотеку, то просто скопируйте source/Measurer/include/Measurer/Measurer.hpp к себе в проект. Описание методов будет далее.
+
+Если хотите собрать тесты, то можно собирать при помощи cmake, тогда это будет кроссплатформенно (ну хотя бы на x86_64). Make написан для собственного удобства, он выставляет фиксированную частоту, отключается AMD_BOOST, а также фиксирует программу на одном ядре и выставляет процессу большой приоритет. 
+
+#### Cmake
+
+```bash
+$ cmake -B build -DCMAKE_BUILD_TYPE=RelWithDebInfo
+$ cmake --build $(BUILD_FOLDER) -j$(nproc)
+$ ./build/measurer --help
+Usage: ./build/measurer [OPTIONS]
+Options:
+  -m, --mode <MODE_NAME>     Specify execution mode | LATENCY |THROUGHPUT | (default: LATENCY)
+  -o, --output <FILE>        Specify output file (default: stdout)
+  -u, --buckets <VALUE>      Specify buckets count (default: 10)
+  -a, --batches <VALUE>      Specify batches count (default: 50)
+  -n, --iterations <VALUE>   Specify iterations count in bucket or in batch (default: 50000)
+  -s, --seed <VALUE>         Specify seed for random (default: random)
+  -v, --verbose              Output exectuion progress
+  -h, --help                 Show this help message
+```
+
+#### Make
+
+| Команда               | Назначение    
+|-----------------------|-------------------------------------|
+| ```make setup_cpu```  | Установить фиксированную частоту на все ядра и отключить AMD_BOOST |
+| ```make restore_cpu```| включить AMD_BOOST и влючить powersave на всех ядрах |
+| ```make bench```      | build + setup_cpu + запуск с большим приоритетом и на 1 ядре + restore_cpu |  
+
+### Функционал
+
+Всё находится в namespace measurer
+
+#### DoNotOptimizeAway
+
+```cpp
+template <typename T>
+static inline void DoNotOptimizeAway(T&& val);
+```
+
+Функция, которая принимает какое-то значение, которое вы не хотите, чтобы выкидывалось, хоть оно и не используется. Внутри пустая ассемблерная вставка, которая принимает этот аргумент и говорит компилятору, что внутри происходит работа с памятью.
+
+#### Val
+
+```cpp
+struct Val {
+    double mean; ///< среднее значение
+    double stddev; ///< среднеквадратичное отклонение
+};
+```
+
+#### Runner::benchLatency
+
+```cpp
+template <
+  typename SetupF, ///< Тип функции подготовки данных. Не принимает аргументов.
+  typename F       ///< Тип замерямой функции. Не принимает аргументов.
+>
+Val Runner::benchLatency(
+    const size_t buckets_cnt, ///< Количесто замерямых бакетов, среди них берёться среднее значение и считает ошибка через TwoPass метод
+    const size_t bucket_iterations_cnt, ///< Количество итераций в 1 бакете, среди всех итераций берётся минимальной значение, как значение с наименьшим вмешательство "шума" ОС, смены констекста и остального не относящегося к функции
+    SetupF&& setup_func, ///< Функция подготовки данных, вызывается перед выполнением каждой итерации, чтобы сгенерировать какие-то необходимые входные данные, либо прогреть кэши
+    F&& func ///< Замеряемая функция
+)
+```
+
+Метод, для замера Latency функции. В данный метод не передаются аргументы, так как подразумевается, что setup_func и func будут лямбдами, которые будут захватывать необходимые аргументы через контекст. Вот пример использования
+
+```cpp
+double arg = 0;
+std::mt19937_64 gen{seed};
+std::uniform_real_distribution<double> dist(1., 1000.);
+
+auto log = [&arg](){ 
+    return std::log(arg); 
+};
+auto log_setup = [&arg, &gen, &dist](){ 
+    static_assert(sizeof(arg) == sizeof(dist(gen)), "");
+    arg = std::bit_cast<double>(dist(gen));
+};
+
+const measurer::Val log_res = measurer::Runner::benchLatency(
+    buckets_cnt, iterations_cnt, log_setup, log
+);
+```
+
+Также есть перегрузка без setup_func, которая из под себя вызывает эту же версию, но вместо setup_func передаёт саму замеряемую функцию, чтобы перед каждым замером прогревать кэши.
+
+#### Runner::benchThroughput
+
+```cpp
+template <
+    typename SetupF, ///< Тип функции подготовки данных. Не принимает аргументов.
+    typename F       ///< Тип замерямой функции. Принимает аргумент индекса итерации, чтобы знать откуда брать данные.
+>
+Val Runner::benchThroughput(
+    const size_t buckets_cnt, ///< Количесто замерямых бакетов, среди них берёться среднее значение и считает ошибка через TwoPass метод
+    const size_t batches_cnt, ///< Количество батчей в одном бакете. Среди всех батчей берёться минимальной значение, как значение с наименьшим вмешательство "шума" ОС, смены констекста и остального не относящегося к функции
+    const size_t batch_iterations_cnt, ///< Количество итераций в одном батче. В этом цикле исполняется только func и больше ничего, чтобы минизировать ошибку. Замеряется время выполнения одного батча и делиться на данное число, как среднее арифметическое. Результат получается с погрешностью на времени выполнения прыжков и инкрементации счётчика цикла, а также учитывается время выполнения последней инструкции цикла.
+    SetupF&& setup_func, ///< Функция подготовки данных, вызывается перед выполнением каждого батча. Должна предоставлять для func batch_iterations_cnt входных данных
+    F&& func ///< Замеряемая функция. Принимает номер текущей итерации в батче и в зависимости от этого берёт необходимые данные и проводит вычисления.
+)
+```
+
+Метод, для замера Throughput функции. В данный метод не передаются аргументы, так как подразумевается, что setup_func и func будут лямбдами, которые будут захватывать необходимые аргументы через контекст. Вот пример использования
+
+```cpp
+std::vector<double> batch_args(iterations_cnt);
+std::mt19937_64 gen{seed};
+std::uniform_real_distribution<double> dist(1., 1000.);
+
+auto log = [&batch_args](const size_t i){ 
+    return std::log(batch_args[i]); 
+};
+auto log_setup = [&batch_args, &gen, &dist](){ 
+    static_assert(sizeof(*batch_args.data()) == sizeof(dist(gen)), "");
+    for (double& arg : batch_args) {
+        arg = std::bit_cast<double>(dist(gen));
+    }
+};
+
+const measurer::Val log_res = measurer::Runner::benchThroughput(
+    buckets_cnt, batches_cnt, iterations_cnt, log_setup, log
+);
+```
+
+Стоит отметить, что не имеет особого смысла тестировать throughput для нагруженных больших функций, так как скорее всего весь конвейер забивается в самой функции, а накладные расходы на передачу аргументов, цикл и остальное могут дать результат даже больше, чем latency. В тестах провёднных в main над mpfr как раз это и наблюдается. При этом std::log показывает корректные данные.
