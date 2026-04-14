@@ -43,6 +43,8 @@ find_path(GMP_INCLUDE_DIR gmp.h)
 find_library(MPFR_LIBRARY mpfr)
 find_library(GMP_LIBRARY gmp)
 
+find_package(sleef REQUIRED)
+
 ###===========================================SUBDIRECTORY==========================================
 
 add_subdirectory(source/CliParser)
@@ -62,6 +64,7 @@ target_link_libraries(measurer PRIVATE
     gmp
     mpfr
     m
+    sleef::sleef
 
     CliParser
     Measurer
@@ -71,3 +74,5 @@ target_include_directories(measurer PRIVATE
     mpfr
     gmp
 )
+
+target_compile_options(measurer PRIVATE -march=native)

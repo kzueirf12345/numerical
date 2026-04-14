@@ -3,8 +3,10 @@
 #include <cstdlib>
 #include <fstream>
 #include <random>
+#include <sleef.h>
 #include <stdexcept>
 #include <mpfr.h>
+#include <x86intrin.h>
 
 #include "CliParser/CliParser.hpp"
 #include "Measurer/Measurer.hpp"
@@ -105,61 +107,71 @@ void LatencyMode(std::ostream& out, const CliParser::Options& opts) {
         "mpfr_div_libm:     " << ratio             << " +/- " << ratio_stddev        << "\n";
 }
 
+#define VALS_CNT_IN_AVX_ (16u)
 void ThroughputMode(std::ostream& out, const CliParser::Options& opts) {
-    std::mt19937_64 gen{opts.seed};
-    std::uniform_real_distribution<double> dist(1., 1000.);
+    if (opts.iterations_cnt % VALS_CNT_IN_AVX_ != 0) {
+        throw std::invalid_argument("For sleef iterations count need to == 0 mod 16");
+    }
 
-    std::vector<double> batch_args_libm(opts.iterations_cnt);
+    std::mt19937 gen{opts.seed};
+    std::uniform_real_distribution<float> dist(1., 1000.);
+
+    std::vector<float> batch_args_libm(opts.iterations_cnt);
 
     auto log_libm = [&batch_args_libm](const size_t i){ 
         return std::log(batch_args_libm[i]); 
     };
     auto log_setup_libm = [&batch_args_libm, &gen, &dist](){ 
         static_assert(sizeof(*batch_args_libm.data()) == sizeof(dist(gen)), "");
-        for (double& arg : batch_args_libm) {
-            arg = std::bit_cast<double>(dist(gen));
+        for (float& arg : batch_args_libm) {
+            arg = std::bit_cast<float>(dist(gen));
         }
     };
 
-    const size_t batch_log_vals_mpfr_size = 10;
+    const size_t batch_args_sleef_size = opts.iterations_cnt / VALS_CNT_IN_AVX_;
+    __m512* const batch_args_sleef = static_cast<__m512*>(
+        std::aligned_alloc(batch_args_sleef_size * sizeof(*batch_args_sleef), 64)
+    );
 
-    std::vector<mpfr_t> batch_args_mpfr(opts.iterations_cnt);
-    std::vector<mpfr_t> batch_log_vals_mpfr(batch_log_vals_mpfr_size);
-    for (size_t ind = 0; ind < opts.iterations_cnt; ++ind) {
-        mpfr_init2(batch_args_mpfr[ind], 53);
-    }
-    for (size_t ind = 0; ind < batch_log_vals_mpfr_size; ++ind) {
-        mpfr_init2(batch_log_vals_mpfr[ind], 53);
-    }
-
-    auto log_mpfr = [&batch_args_mpfr, &batch_log_vals_mpfr](const size_t i){ 
-        mpfr_log(batch_log_vals_mpfr[i % batch_log_vals_mpfr_size], batch_args_mpfr[i], MPFR_RNDN); 
+    auto log_sleef = [&batch_args_sleef](const size_t i){ 
+        return Sleef_logf16_u10avx512f(batch_args_sleef[i]);
     };
-    auto log_setup_mpfr = [&batch_args_mpfr, &gen, &dist](){
-        for (mpfr_t& arg : batch_args_mpfr) {
-            mpfr_set_d(arg, std::bit_cast<double>(dist(gen)), MPFR_RNDN);
+    auto log_setup_sleef = [batch_args_sleef, batch_args_sleef_size, &gen, &dist](){
+        float arg_arr[VALS_CNT_IN_AVX_] = {};
+
+        for (size_t iter = 0; iter < batch_args_sleef_size; ++iter) {
+            for (size_t i = 0; i < VALS_CNT_IN_AVX_; ++i) {
+                arg_arr[i] = std::bit_cast<float>(dist(gen));
+            }
+            batch_args_sleef[iter] = _mm512_load_ps(arg_arr);
         }
     };
 
     const measurer::Val log_res_libm = measurer::Runner::benchThroughput(
         opts.buckets_cnt, opts.batches_cnt, opts.iterations_cnt, log_setup_libm, log_libm
     );
-    const measurer::Val log_res_mpfr = measurer::Runner::benchThroughput(
-        opts.buckets_cnt, opts.batches_cnt, opts.iterations_cnt, log_setup_mpfr, log_mpfr
+    measurer::Val log_res_sleef = measurer::Runner::benchThroughput(
+        opts.buckets_cnt, opts.batches_cnt, opts.iterations_cnt / VALS_CNT_IN_AVX_, 
+        log_setup_sleef, log_sleef
     );
 
-    const double ratio = log_res_mpfr.mean / log_res_libm.mean; 
+    free(batch_args_sleef);
 
-    const double rel_err_libm = log_res_libm.stddev / log_res_libm.mean;
-    const double rel_err_mpfr = log_res_mpfr.stddev / log_res_mpfr.mean;
-    const double ratio_stddev = ratio * sqrt(rel_err_libm * rel_err_libm  + rel_err_mpfr * rel_err_mpfr); 
+    log_res_sleef.mean /= VALS_CNT_IN_AVX_;
+    log_res_sleef.stddev /= VALS_CNT_IN_AVX_;
+
+    const float ratio = log_res_libm.mean / log_res_sleef.mean; 
+
+    const float rel_err_libm = log_res_libm.stddev / log_res_libm.mean;
+    const float rel_err_mpfr = log_res_sleef.stddev / log_res_sleef.mean;
+    const float ratio_stddev = ratio * sqrt(rel_err_libm * rel_err_libm  + rel_err_mpfr * rel_err_mpfr); 
 
     out <<
         "\n===Benchmarking Throughput===\n"
-        "buckets_cnt:       " << opts.buckets_cnt                                    << "\n"
-        "batches_cnt:       " << opts.batches_cnt                                    << "\n"
-        "iterations_cnt:    " << opts.iterations_cnt                                 << "\n"
-        "clks_mpfr:         " << log_res_mpfr.mean << " +/- " << log_res_mpfr.stddev << "\n"
-        "clks_libm:         " << log_res_libm.mean << " +/- " << log_res_libm.stddev << "\n"
-        "mpfr_div_libm:     " << ratio             << " +/- " << ratio_stddev        << "\n";
+        "buckets_cnt:       " << opts.buckets_cnt                                       << "\n"
+        "batches_cnt:       " << opts.batches_cnt                                       << "\n"
+        "iterations_cnt:    " << opts.iterations_cnt                                    << "\n"
+        "clks_sleef:        " << log_res_sleef.mean << " +/- " << log_res_sleef.stddev  << "\n"
+        "clks_libm:         " << log_res_libm.mean  << " +/- " << log_res_libm.stddev   << "\n"
+        "libm_div_sleef:    " << ratio              << " +/- " << ratio_stddev          << "\n";
 }
