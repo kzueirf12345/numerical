@@ -1,4 +1,5 @@
 #include <stdexcept>
+#include <string>
 
 #include "CliParser/CliParser.hpp"
 
@@ -10,6 +11,7 @@ void CliParser::printHelp(std::ostream& output) {
     output << "Usage: ./build/measurer [OPTIONS]\n"
               "Options:\n"
               "  -o, --output <FILE>        Specify output file (default: stdout)\n"
+              "  -s, --seed <VALUE>         Specify seed for minstd_rand (default: 1)\n"
               "  -v, --verbose              Output exectuion progress\n"
               "  -h, --help                 Show this help message\n";
 }
@@ -25,6 +27,10 @@ void CliParser::parse(int argc, char* argv[]) {
         else if (arg == "-o" || arg == "--output") {
             checkRequireArgument(i, argc, arg);
             options_.output_file = argv[++i];
+        }
+        else if (arg == "-s" || arg == "--seed") {
+            checkRequireArgument(i, argc, arg);
+            options_.seed = parseUint32(argv[++i], arg);
         }
         else if (arg == "-v" || arg == "--verbose") {
             options_.verbose = true;
@@ -42,6 +48,20 @@ void CliParser::checkRequireArgument(int index, int argc, const std::string& opt
     if (index + 1 >= argc) {
         throw std::invalid_argument("Option " + option + " requires an argument");
     }
+}
+
+uint32_t CliParser::parseUint32(const char* str, const std::string& option) try {
+    size_t pos = 0;
+
+    unsigned long val = std::stoul(str, &pos);
+    if (pos != std::strlen(str)) {
+        throw std::invalid_argument("");
+    }
+
+    return static_cast<uint32_t>(val);
+}
+catch (...) {
+    throw std::invalid_argument("Invalid uint64_t value for " + option + ": " + str);
 }
 
 uint64_t CliParser::parseUint64(const char* str, const std::string& option) try {

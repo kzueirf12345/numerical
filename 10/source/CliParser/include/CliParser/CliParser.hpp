@@ -13,6 +13,7 @@ public:
 
     struct Options {
         std::string output_file = "";
+        uint32_t seed = 1;
         bool verbose = false;
         bool help_requested = false;
     };
@@ -32,6 +33,7 @@ private:
 
     static void checkRequireArgument(int index, int argc, const std::string& option);
 
+    static uint32_t parseUint32(const char* str, const std::string& option);
     static uint64_t parseUint64(const char* str, const std::string& option);
     static size_t parseSize(const char* str, const std::string& option);
 
