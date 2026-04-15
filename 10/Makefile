@@ -1,5 +1,5 @@
 BUILD_FOLDER = ./build
-PROJECT_NAME = measurer
+PROJECT_NAME = minstd_rand
 
 CPU_CORE = 0
 GOVERNOR = performance
