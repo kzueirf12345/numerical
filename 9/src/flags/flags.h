@@ -1,0 +1,58 @@
+#ifndef MATMUL_SRC_FLAGS_FLAGS_H
+#define MATMUL_SRC_FLAGS_FLAGS_H
+
+#include <assert.h>
+#include <stdio.h>
+#include <stdbool.h>
+
+enum FlagsError
+{
+    FLAGS_ERROR_SUCCESS     = 0,
+    FLAGS_ERROR_FAILURE     = 1,
+};
+static_assert(FLAGS_ERROR_SUCCESS  == 0, "");
+
+const char* flags_strerror(const enum FlagsError error);
+
+#define FLAGS_ERROR_HANDLE(call_func, ...)                                                          \
+    do {                                                                                            \
+        enum FlagsError error_handler = call_func;                                                  \
+        if (error_handler)                                                                          \
+        {                                                                                           \
+            fprintf(stderr, "Can't " #call_func". Error: %s\n",                                     \
+                            flags_strerror(error_handler));                                         \
+            __VA_ARGS__                                                                             \
+            return error_handler;                                                                   \
+        }                                                                                           \
+    } while(0)
+
+typedef struct FlagsObjs
+{
+    char log_folder [FILENAME_MAX + 1];
+
+    unsigned int seed;
+
+    size_t iterations_cnt;
+    size_t buckets_cnt;
+
+    bool need_help;
+
+} flags_objs_t;
+
+#define HELP_MESSAGE \
+    "Usage: matmul.out [OPTIONS]\n" \
+    "Options:\n" \
+    "\t-l <FOLDER>            Specify folder for logs (default: ./log/)\n" \
+    "\t-s <VALUE>             Specify seed for testing random values (default: random)\n" \
+    "\t-b <VALUE>             Specify buckets count (default: 10)\n" \
+    "\t-n <VALUE>             Specify iterations count by one bucket (default: 50000)\n" \
+    "\t-h                     Show this help message\n"
+
+enum FlagsError flags_objs_ctor (flags_objs_t* const flags_objs);
+enum FlagsError flags_objs_dtor (flags_objs_t* const flags_objs);
+enum FlagsError flags_processing(flags_objs_t* const flags_objs, 
+                                 const int argc, char* const argv[]);
+
+
+
+#endif /*MATMUL_SRC_FLAGS_FLAGS_H*/
