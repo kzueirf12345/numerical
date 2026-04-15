@@ -16,7 +16,7 @@ if(MSVC)
 else()
     add_library(project_warnings INTERFACE)
     target_compile_options(project_warnings INTERFACE
-        -Wall -Wextra -Werror -Wpedantic
+        -Wall -Wextra -Werror -Wpedantic -march=native
         $<$<CONFIG:DEBUG>:-Og -g>
         $<$<CONFIG:RELEASE>:-O3 -DNDEBUG>
     )
@@ -59,5 +59,3 @@ target_link_libraries(minstd_rand PRIVATE
     Measurer
     Rand
 )
-
-target_compile_options(minstd_rand PRIVATE -march=native)
