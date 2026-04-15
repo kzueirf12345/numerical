@@ -209,6 +209,43 @@ $$
 
 То есть значения мат ожидания и дисперсии совпадают с необходимыми.
 
+## 9
+
+Оптимизация перемножения матриц. Подробный отчёт лежит в ```9/report/```.
+
+### Зависимости
+
+| Зависимость           | Минимальная версия    | Назначение                                    |
+|-----------------------|-----------------------|-----------------------------------------------|
+| **make**              | 4.3                   | Сборка проекта и зависимостей                 |
+| **gcc**               | 11.4                  | Компиляция C кода                         |
+
+### Использование
+
+| Команда               | Назначение    
+|-----------------------|-------------------------------------|
+| ```make build```      | Собирает проект                     |
+| ```make clean```      | Очищает папку build и логи          | 
+| ```make rebuild```    | clean + build                       |
+| ```make start```      | Запускает проект                    | 
+| ```make all```        | build + start                       |
+| ```make setup_cpu```  | Установить фиксированную частоту на все ядра и отключить AMD_BOOST |
+| ```make restore_cpu```| включить AMD_BOOST и влючить powersave на всех ядрах |
+| ```make bench```      | build (release) + setup_cpu + запуск с большим приоритетом и на 1 ядре + restore_cpu | 
+
+Опции можно передать через аргумент ```OPTS``` в двойных ковычках, либо же напрямую исполняемому файлу. Для просмотра всех возможных опций в качестве аргумента передайте -h.
+
+```bash
+$ make OPTS="-h"
+Usage: matmul.out [OPTIONS]
+Options:
+	-l <FOLDER>            Specify folder for logs (default: ./log/)
+	-s <VALUE>             Specify seed for testing random values (default: random)
+	-b <VALUE>             Specify buckets count (default: 10)
+	-n <VALUE>             Specify iterations count by one bucket (default: 50000)
+	-h                     Show this help message
+```
+
 ## 11 
 
 Библиотека для замера Latency и Throughput.

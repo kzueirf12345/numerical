@@ -1,0 +1,486 @@
+\documentclass[12pt]{extarticle}
+\linespread{1.5}
+
+\title{Оптимизированное матричное умножение}
+\author{Владимир Попов}
+\date{\today}
+
+\usepackage{cmap}
+\usepackage[T2A]{fontenc}
+\usepackage[english, russian]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage{mathtools}
+\usepackage{amsfonts}
+\usepackage{graphicx}
+\usepackage{listings}
+\usepackage{courier}
+\usepackage{indentfirst}
+\usepackage{stmaryrd}
+\usepackage{caption}
+\captionsetup[figure]{labelformat=empty}
+\usepackage{amssymb}
+\usepackage{multirow, makecell, array}
+
+\usepackage{tikz}
+\usepackage{tzplot}
+\usetikzlibrary{arrows,decorations.pathmorphing,backgrounds,positioning,fit,petri}
+\usetikzlibrary{calc,intersections,through,backgrounds, quotes, angles}
+\usetikzlibrary{arrows,automata,positioning}
+\tikzset{snake it/.style={decorate, decoration=snake}}
+\usepackage{pgfplots,pgf-pie}
+
+\usepackage{geometry} % Меняем поля страницы
+\geometry{left=2cm}% левое поле
+\geometry{right=1.5cm}% правое поле
+\geometry{top=1cm}% верхнее поле
+\geometry{bottom=2cm}% нижнее поле
+
+\newtheorem{definition}{Определение}
+\newtheorem{remark}{Ремарка!}
+\newtheorem{theorem}{Теорема}
+
+\newcommand{\implyarrow}{%
+  \mathrel{\raisebox{1.3ex}{\rotatebox[origin=c]{90}{\mathhexbox37F}}}}
+
+\DeclareMathOperator{\arccot}{arccot}
+
+\usepackage{listings}
+\usepackage{xcolor}
+
+%New colors defined below
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+
+%Code listing style named "mystyle"
+\lstdefinestyle{mystyle}{
+  backgroundcolor=\color{backcolour},   commentstyle=\color{codegreen},
+  keywordstyle=\color{magenta},
+  numberstyle=\tiny\color{codegray},
+  stringstyle=\color{codepurple},
+  basicstyle=\ttfamily\footnotesize,
+  breakatwhitespace=false,         
+  breaklines=true,                 
+  captionpos=b,                    
+  keepspaces=true,                 
+  numbers=left,                    
+  numbersep=5pt,                  
+  showspaces=false,                
+  showstringspaces=false,
+  showtabs=false,                  
+  tabsize=2
+}
+
+%"mystyle" code listing set
+\lstset{style=mystyle}
+
+\begin{document}
+
+
+\maketitle
+
+\newpage
+
+\tableofcontents
+
+\newpage
+
+\section{Характеристики}
+
+\begin{table}[ht]
+\centering
+\label{tab:system_specs}
+\begin{tabular}{ll}
+\toprule
+\textbf{Параметр} & \textbf{Значение} \\
+\midrule
+\multicolumn{2}{c}{\textit{Аппаратное обеспечение (Hardware)}} \\
+\midrule
+Процессор (CPU) & AMD Ryzen 7 8845H (8 ядер, 16 потоков) \\
+Архитектура & x86\_64 \\
+Базовая / Максимальная частота & 3.8 ГГц / 5.1 ГГц \\
+L1 Кэш (данные/инструкции) & 256 / 256 КиБ \\
+L2 Кэш & 8 МиБ \\
+L3 Кэш & 16 МиБ (общий) \\
+Оперативная память & 32 ГБ LPDDR5x \\
+\midrule
+\multicolumn{2}{c}{\textit{Программное обеспечение (Software)}} \\
+\midrule
+Операционная система & Ubuntu 22.04.5 LTS \\
+Ядро Linux & 6.8.0-106-generic \\
+Компилятор & GCC 11.4 / Clang 11.4 \\
+Библиотека C & glibc 2.35 \\
+Флаги компиляции & \texttt{-DNDEBUG -O3 -march=native -mprefer-vector-width=512 -ffast-math} \\
+\bottomrule
+\end{tabular}
+
+\caption{Характеристики тестовой системы и программного окружения}
+\end{table}
+
+На моей машине есть поддержка следующих расширений:
+
+AES, AMD-V  AVX, AVX2, AVX512, FMA3, MMX-plus, SHA, SSE, SSE2, SSE3, SSE4.1, SSE4.2, SSE4A, SSSE3.
+
+Также имеется 2 исполнительных FMA блока.
+
+\section{Базовая версия}
+
+Мы будем перемножать матрицы, содержащие элементы типа fp32. Писать будуем на Си. Выделением памяти функция заниматься не должна, поэтому буем передавать указатель на итоговую матрицу в функцию. Будем считать, что на пользователя не возлагается ответственность занулять память, мало ли он использует malloc, поэтому должна будет сама занулять элементы.
+
+Функция должна соответствовать следующему типу
+
+\begin{lstlisting}[language=C]
+typedef void (*matmul_t) (
+    const float* const mat1, 
+    const float* const mat2, 
+          float* const mat_dst,
+    const size_t i_size, const size_t j_size, const size_t k_size
+);
+\end{lstlisting}
+, где i\_size - количество строк в первой матрице, j\_size - количество столбцов в первой матрице или же количество строк во второй матрице, k\_size - количество столбцов во второй матрице.
+
+Итоговая матрица будет размером $i\_size \times k\_size$.
+
+Напишем базовую версию перемножения, чтобы сравнивать с ней корректность результата и ускорение.
+
+\begin{lstlisting}[language=C]
+void matmul_correct(
+    const float* const mat1, 
+    const float* const mat2, 
+          float* const mat_dst,
+    const size_t i_size, const size_t j_size, const size_t k_size
+) {
+    /*Asserts*/
+    for (size_t i = 0; i < i_size; ++i) {
+        for (size_t k = 0; k < k_size; ++k) {
+            mat_dst[i * k_size + k] = 0;
+
+            for (size_t j = 0; j < j_size; ++j) {
+                mat_dst[i * k_size + k] += mat1[i * j_size + j] * mat2[j * k_size + k];
+            }
+        }
+    }
+}
+\end{lstlisting}
+
+\section{Лёгкие оптимизации}
+
+Самая очевидная оптимизация, это изменение порядка вложенности циклов. В базовой версии мы идём по столбцам второй матрицы, а значит прыгаем по массиву с шагом равному k\_size. Это соотствует плохой пространственной локальности, потому что на каждое новое обращение процессору требуется подгружать новую кеш-линию данных, хотя из старой обработан лишь один элемент. 
+
+Также логично потребовать гарантию от пользователя функции, что mat1, mat2, mat\_dst не будут пересекаться, это всё таки разные матрицы. Для объявим указатели как restrict. Это позволит компилятору производить оптимизации, допустим не сохранять лишний раз результат, так как известно что он не перезапишется.
+
+\begin{lstlisting}[language=C]
+void matmul_optimized(
+    const float* restrict const mat1, 
+    const float* restrict const mat2, 
+          float* restrict const mat_dst,
+    const size_t i_size, const size_t j_size, const size_t k_size
+) {
+    /*Asserts*/
+
+    memset(mat_dst, 0, i_size * k_size * sizeof(*mat_dst));
+
+    for (size_t i = 0; i < i_size; ++i) {
+        for (size_t j = 0; j < j_size; ++j) {
+            for (size_t k = 0; k < k_size; ++k) {
+                mat_dst[i * k_size + k] += mat1[i * j_size + j] * mat2[j * k_size + k];
+            }
+        }
+    }
+}
+\end{lstlisting}
+
+\section{Тестирование}
+
+\subsection{Корректность результата}
+
+Для проверки того, что оптимизированная версия корректно считает умножение матриц напишем функцию, проверяющую 2 матрицы на равенство. Значения будем сравнивать с точностью до какого-то знака, так как из-за отсутствия ассоциативности операций с типами с плавающей точкой может накапливаться погрешность.
+
+\newpage
+
+\begin{lstlisting}[language=C]
+bool mat_is_equal(
+    const float* const mat1, 
+    const float* const mat2,
+    const size_t rows, const size_t cols
+) {
+    /*Asserts*/
+    const size_t size = rows * cols;
+    for (size_t ind = 0; ind < size; ++ind) {
+        if (fabsf(mat1[ind] - mat2[ind]) > FLOAT_EPSILON) {
+            return false;
+        }
+    }
+
+    return true;
+}
+\end{lstlisting}
+
+Я проверил корректность и при флаге \texttt{-march=native} получил погрешность результатов 2 знака после запятой. Изначально матрицы я заполнял рандомными числами от 0 до 100, итоговые значения получались достаточно большими, поэтому относительная погрешность около 6 знаков, что в целом тоже много. Я подумал, что это из-за того, что в оптимизированной версии компилятор смог подставить fma инструкции, тем самым избежав потери точности, тогда как в неоптимизированной функции она осталась. Я скомпилировал с флагом \texttt{-ffp-contract=off}, который отключает fma инструкции и точность и вправду стала нормальной. 
+
+Я решил заполнять таблицу значения от 0 до 1, тогда итоговая погрешность около 5 знаков после запятой. Всё таки значения в оптимизированной функции считаются точнее, чем в обычной, поэтому имеет смысл при дальнейших оптимизациях сравнивать корректность именно с ней.
+
+\subsection{Бенчмаркинг}
+
+Для замера времени будем использовать обёртку над ассемблерной инструкцией rdtsc, возвращающую количество тактов. Нужно проводить много измерений, потом из них получать результат и ошибку. Я попробовал считать среднее значение, а также дисперсию, но дисперсия была огромной и очень сильна плавала от замера к замеру. Это можно связать с "шумом" от других приложений, изменением частоты и изменением контекста, если вдруг программа перебрасывается на другой процесс. 
+
+Я добавил при запуске фиксацию частоты на 3 ГГц, убрал AMD\_BOOST, который тоже может сильно влиять на частоту, а также привязал программу к конкретному ядру и выставил большой приоритет, чтобы процесс не вытеснялся.
+
+\begin{lstlisting}[language=Make]
+CPU_CORE = 0
+GOVERNOR = performance
+AMD_BOOST = /sys/devices/system/cpu/cpufreq/boost
+FIXED_FREQ = 3000MHz 
+
+bench: clean_out
+	$(MAKE) DEBUG_=0 ADD_FLAGS="$(BENCH_FLAGS)" rebuild
+	@$(MAKE) setup_cpu
+	sudo taskset -c $(CPU_CORE) chrt -f 99 ./$(PROJECT_NAME).out $(OPTS)
+	@$(MAKE) restore_cpu
+
+setup_cpu:
+	sudo cpupower frequency-set -u $(FIXED_FREQ) -d $(FIXED_FREQ) -g $(GOVERNOR)
+	if [ -f $(AMD_BOOST) ]; then echo 0 | sudo tee $(AMD_BOOST); fi
+
+restore_cpu:
+	sudo cpupower frequency-set -g powersave
+	if [ -f $(AMD_BOOST) ]; then echo 1 | sudo tee $(AMD_BOOST); fi
+\end{lstlisting}
+
+Это не очень помогло. Шумы всё равно не перестали влиять. Логично было бы оценивать не среднее, а минимум, так как минимальное количество тактов показывает замер, в котором было наименьшее количество побочных факторов. А чтобы понять правда ли этот минимум является тем самым замером без побочных эффектов, нужно сравнить его с другими минимумами и посчитать дисперсию. Если она окажется маленькой, значит значение и вправду корректное.  
+
+Дисперсию будем считать через двухпроходный алгоритм, чтобы минимизировать ошибку связанную точностью чисел с плавающей точкой. А перед каждым замером будем прогревать кеш на тех же данных.
+
+\begin{lstlisting}[language=C]
+enum MatBenchError matbench(
+    const size_t bucket_iterations_cnt,
+    const size_t buckets_cnt,
+    const matmul_t matmul,
+    const size_t i_size, const size_t j_size, const size_t k_size,
+    double* mean_ptr, double* disp_ptr
+) {
+    /*Init something*/
+
+    double mean = 0;
+
+    for (size_t bucket = 0; bucket < buckets_cnt; ++bucket) {
+        double min = INFINITY;
+
+        for (size_t iteration = 0; iteration < bucket_iterations_cnt; ++iteration) {
+            matfill(mat1, i_size, j_size);
+            matfill(mat2, j_size, k_size);
+            
+            matmul(mat1, mat2, mat_dst, i_size, j_size, k_size); // warming up
+
+            unsigned int $dummy$ = 0;
+            const unsigned long long start = __rdtscp(&$dummy$);
+
+            matmul(mat1, mat2, mat_dst, i_size, j_size, k_size);
+
+            const unsigned long long end = __rdtscp(&$dummy$);
+
+            const double time = (double)(end - start);
+            if (time < min) {
+                min = time;
+            }
+        }
+
+        buckets_mins[bucket] = min;
+        mean += min;
+    }
+
+    mean = mean / (double)buckets_cnt;
+
+    double disp = 0;
+
+    for (size_t time_ind = 0; time_ind < buckets_cnt; ++time_ind) {
+        const double x = buckets_mins[time_ind];
+        const double dev = x - mean;
+        disp += dev * dev;
+    }
+
+    disp = disp / (double)(buckets_cnt - 1);
+
+    /*Destroy something*/
+}
+\end{lstlisting}
+
+\begin{table}[h!]
+\centering
+\begin{tabular}{|l|l|}
+\hline
+\textbf{Параметр бенчмарка} & \textbf{Значение} \\ \hline
+Размерность матриц ($I \times J \times K$) & $32 \times 64 \times 16$ \\ \hline
+Количество бакетов & 10 \\ \hline
+Итераций в бакете & 50000 \\ \hline
+Такты (matmul\_correct) & $88700 \pm 170$ \\ \hline
+Такты (matmul\_optimized) & $19500 \pm 16$ \\ \hline
+\textbf{Ускорение} & $\mathbf{4.55x \pm 0.01}$ \\ \hline
+\end{tabular}
+\caption{Результаты бенчмаркинга производительности матричного умножения с наивными оптимизациями}
+\label{table:matmul_bench}
+\end{table}
+
+Погрешность оказалась действительно маленькой, а значит скорее всего мы всё померили правильно и нашли реальный минимум. 
+
+\section{Развёртка и перепланировка}
+
+Если сейчас посмотреть вывод при сборке программы с флагом -fopt-info-vec-optimized, то он покажет, что развёртка и использование avx-инструкций уже делается компилятором во внутреннем цикле по k.
+
+\begin{lstlisting}[language=bash]
+# src/matrix/funcs.c:50:34 - for (size_t k = 0; k < k_size; ++k) 
+src/matrix/funcs.c:50:34: optimized: loop vectorized using 64 byte vectors
+src/matrix/funcs.c:50:34: optimized: loop vectorized using 32 byte vectors
+src/matrix/funcs.c:50:34: optimized: loop vectorized using 64 byte vectors
+src/matrix/funcs.c:50:34: optimized: loop vectorized using 32 byte vectors
+\end{lstlisting}
+
+Но можно сделать эту развёртку более умной. Давайте класть в один zmm-регистр 16 значений float из строчки второй матрицы, и дублировать соответствующее значение матрицы во второй регситр 16 раз. Тогда мы сможем за одну векторную fma операцию посчитать сразу 16 значений. Тогда аккумулирующим операндом этого fma также должен быть zmm-регистром, поэтому будем накапливать значения в дополнительных переменных, а после подсчёта за раз записывать их итоговую матрицу.
+
+Так как zmm-регистров целых 32 штуки, а также на моей машине имеется 2 вычислительных блока fma, то можно также сделать развёртку по столбцам первой матрицы. 
+
+Хочется как можно позже уйти от кроссплатформенности функций, поэтому попробуем написать эту функцию без использования интринсиков напрямую. А также протестируем различные значения развёрток по столбцам.
+
+Также стоит учесть, что для корректной работы некоторых интринсиков требуется, чтобы адреса были выровнены по 64 байта. Чтобы сообщить об этом компилятору будет использовать \_\_builtin\_assume\_aligned, а выделять сами массивы теперь будем не через calloc, а через aligned\_alloc.
+
+\begin{lstlisting}[language=C]
+#define BLOCK_HEIGHT_ (8)
+#define BLOCK_WIDTH_  (16)
+void matmul_optimized2(
+    const float* restrict const mat1, 
+    const float* restrict const mat2, 
+          float* restrict const mat_dst,
+    const size_t i_size, const size_t j_size, const size_t k_size
+) {
+    /*Assets*/
+
+    const float* __restrict a = __builtin_assume_aligned(mat1, ALIGNMENT);
+    const float* __restrict b = __builtin_assume_aligned(mat2, ALIGNMENT);
+    float* __restrict       c = __builtin_assume_aligned(mat_dst, ALIGNMENT);
+
+    const size_t i_limit = i_size - (i_size % BLOCK_HEIGHT_);
+    const size_t k_limit = k_size - (k_size % BLOCK_WIDTH_);
+
+    for (size_t i = 0; i < i_limit; i += BLOCK_HEIGHT_) {
+        for (size_t k = 0; k < k_limit; k += BLOCK_WIDTH_) {
+            
+            float acc0[BLOCK_WIDTH_] = {0}; 
+            /**/
+            float acc7[BLOCK_WIDTH_] = {0};
+
+            for (size_t j = 0; j < j_size; ++j) {
+                
+                const float* b_row = &b[j * k_size + k];
+
+                const float a0 = a[(i + 0) * j_size + j];
+                /**/
+                const float a7 = a[(i + 7) * j_size + j];
+
+                for (size_t v = 0; v < BLOCK_WIDTH_; ++v) {
+                    acc0[v] += a0 * b_row[v];
+                    /**/
+                    acc7[v] += a7 * b_row[v];
+                }
+            }
+
+            for (size_t v = 0; v < BLOCK_WIDTH_; ++v) {
+                c[(i + 0) * k_size + k + v] = acc0[v];
+                /**/
+                c[(i + 7) * k_size + k + v] = acc7[v];
+            }
+        }
+    }
+
+    //Handle tails
+}
+\end{lstlisting}
+
+\begin{table}[h!]
+\centering
+\caption{Результаты бенчмаркинга производительности матричного умножения с переупорядочиванием и развёрткой}
+\label{table:unroll_comparison}
+\begin{tabular}{|l|c|c|c|}
+\toprule
+\hline
+\textbf{Коэффициент} & \textbf{matmul\_optimized} & \textbf{matmul\_optimized2} & \textbf{Ускорение} \\
+\textbf{развертки ($i$)} & Такты & Такты &  \\  \hline \midrule
+4  & $18840 \pm 24$ & $10070 $ & $1.87x \pm 0.02$ \\ \hline
+\textbf{8}  & $\mathbf{18824 \pm 18}$ & $\mathbf{3306}$ & $\mathbf{5.72x \pm 0.02}$ \\ \hline
+16 & $18820 \pm 18$ & $3760$ & $5x \pm 0.02$ \\ \hline  \bottomrule
+\end{tabular}
+\end{table}
+
+
+\section{Интринсики}
+
+Перепишем вторую оптимизированную версию с явным использованием интринсиков.
+
+\begin{lstlisting}[language=C]
+#define BLOCK_HEIGHT_ (8)
+#define BLOCK_WIDTH_  (16)
+void matmul_optimized3(
+    const float* restrict const mat1, 
+    const float* restrict const mat2, 
+          float* restrict const mat_dst,
+    const size_t i_size, const size_t j_size, const size_t k_size
+) {
+    /*Asserts*/
+
+    const float* __restrict a = __builtin_assume_aligned(mat1, ALIGNMENT);
+    const float* __restrict b = __builtin_assume_aligned(mat2, ALIGNMENT);
+    float* __restrict       c = __builtin_assume_aligned(mat_dst, ALIGNMENT);
+
+    const size_t i_limit = i_size - (i_size % BLOCK_HEIGHT_);
+    const size_t k_limit = k_size - (k_size % BLOCK_WIDTH_);
+
+    for (size_t i = 0; i < i_limit; i += BLOCK_HEIGHT_) {
+        for (size_t k = 0; k < k_limit; k += BLOCK_WIDTH_) {
+            
+            __m512 acc0 = _mm512_setzero_ps(); 
+            /**/
+            __m512 acc7 = _mm512_setzero_ps();
+
+            for (size_t j = 0; j < j_size; ++j) {
+                
+                const __m512 b_row = _mm512_load_ps(b + (j * k_size + k));
+
+                const __m512 a0 = _mm512_set1_ps(a[(i + 0) * j_size + j]);
+                /**/
+                const __m512 a7 = _mm512_set1_ps(a[(i + 7) * j_size + j]);
+
+                acc0 = _mm512_fmadd_ps(a0, b_row, acc0);
+                /**/
+                acc7 = _mm512_fmadd_ps(a7, b_row, acc7);
+            }
+
+            _mm512_store_ps(c + ((i + 0) * k_size + k), acc0);
+            /**/
+            _mm512_store_ps(c + ((i + 7) * k_size + k), acc7);
+        }
+    }
+
+    // Tails
+}
+\end{lstlisting}
+
+\begin{table}[h!]
+\centering
+\begin{tabular}{|l|l|}
+\hline
+\textbf{Параметр бенчмарка} & \textbf{Значение} \\ \hline
+Размерность матриц ($I \times J \times K$) & $32 \times 64 \times 16$ \\ \hline
+Количество бакетов & 10 \\ \hline
+Итераций в бакете & 50000 \\ \hline
+Такты (matmul\_optimized2) & $3306$ \\ \hline
+Такты (matmul\_optimized3) & $2812$ \\ \hline
+\textbf{Ускорение} & $\mathbf{1.17568x \pm 0.00001}$ \\ \hline
+\end{tabular}
+\caption{Результаты бенчмаркинга производительности матричного умножения с интринсиками}
+\label{table:matmul_bench}
+\end{table}
+
+Итоговое ускорение по сравнению с изначальной версией - $\mathbf{29.0797x \pm 0.00427335}$
+ 
+
+\end{document}
