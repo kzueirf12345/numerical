@@ -10,7 +10,17 @@ CliParser::CliParser(int argc, char* argv[]) {
 void CliParser::printHelp(std::ostream& output) {
     output << "Usage: ./build/measurer [OPTIONS]\n"
               "Options:\n"
+              "  -m, --mode <MODE_NAME>     Specify execution mode | "
+              
+#define DEFINE_ENUM_(name) << #name << " |"
+        MODE_LIST_(DEFINE_ENUM_)
+#undef DEFINE_ENUM_
+              
+           << " (default: TESTING)\n"
               "  -o, --output <FILE>        Specify output file (default: stdout)\n"
+              "  -u, --buckets <VALUE>      Specify buckets count (default: 10)\n"
+              "  -a, --batches <VALUE>      Specify batches count (default: 50)\n"
+              "  -n, --iterations <VALUE>   Specify iterations count for testing or in bucket or in batch (default: 10000)\n"
               "  -s, --seed <VALUE>         Specify seed for minstd_rand (default: 1)\n"
               "  -v, --verbose              Output exectuion progress\n"
               "  -h, --help                 Show this help message\n";
@@ -23,6 +33,22 @@ void CliParser::parse(int argc, char* argv[]) {
         if (arg == "-h" || arg == "--help") {
             options_.help_requested = true;
             return;
+        }
+        else if (arg == "-u" || arg == "--buckets") {
+            checkRequireArgument(i, argc, arg);
+            options_.buckets_cnt = parseSize(argv[++i], "--buckets");
+        }
+        else if (arg == "-a" || arg == "--batches") {
+            checkRequireArgument(i, argc, arg);
+            options_.batches_cnt = parseSize(argv[++i], "--batches");
+        }
+        else if (arg == "-m" || arg == "--mode") {
+            checkRequireArgument(i, argc, arg);
+            options_.mode = parseMode(argv[++i], "--mode");
+        }
+        else if (arg == "-n" || arg == "--iterations") {
+            checkRequireArgument(i, argc, arg);
+            options_.iterations_cnt = parseSize(argv[++i], "--iterations");
         }
         else if (arg == "-o" || arg == "--output") {
             checkRequireArgument(i, argc, arg);
@@ -90,4 +116,11 @@ size_t CliParser::parseSize(const char* str, const std::string& option) try {
 }
 catch (...) {
     throw std::invalid_argument("Invalid size_t value for " + option + ": " + str);
+}
+
+CliParser::Mode CliParser::parseMode(const char* str, const std::string& option) try {
+    return mode_str2enum_map.at(str);
+}
+catch (...) {
+    throw std::invalid_argument("Invalid mode for " + option + ": " + str);
 }
