@@ -225,23 +225,15 @@ static void* PiThreadFoo(void* arg) {
     return data;
 }
 
-struct PiMeasurement {
-    double pi = NAN;
-    uint64_t time = 0;
-};
-
 template <Generator GenT>
-PiMeasurement BenchSomeGen(
-    const size_t cores_cnt, const size_t iterations, const uint32_t seed
+void SetupPiFunc(
+    const size_t cores_cnt, const size_t iterations, const uint32_t seed, 
+    pthread_barrier_t* const barrier_ptr,
+    std::vector<pthread_t>& threads, std::vector<PiThreadData>& threads_data
 ) {
-    pthread_barrier_t barrier{};
+    pthread_barrier_init(barrier_ptr, nullptr, cores_cnt + 1);
 
-    pthread_barrier_init(&barrier, nullptr, cores_cnt + 1);
-
-    std::vector<PiThreadData> threads_data{
-        GeneratePiThreadsData(cores_cnt, iterations, seed, &barrier)
-    };
-    std::vector<pthread_t> threads(cores_cnt);
+    threads_data = GeneratePiThreadsData(cores_cnt, iterations, seed, barrier_ptr);
 
     for (size_t thread_num = 0; thread_num < cores_cnt; ++thread_num) {
         pthread_create(
@@ -249,54 +241,69 @@ PiMeasurement BenchSomeGen(
         );
     }
 
+    pthread_barrier_wait(barrier_ptr);
+}
+
+size_t DoPiFunc(
+    const size_t cores_cnt, 
+    const std::vector<pthread_t>& threads, std::vector<PiThreadData>& threads_data
+) {
     size_t hits = 0;
-
-    pthread_barrier_wait(&barrier);
-
-    _mm_lfence();
-    const uint64_t start = __rdtsc();
-    _mm_lfence();
-
     for (size_t thread_num = 0; thread_num < cores_cnt; ++thread_num) {
         pthread_join(threads[thread_num], nullptr);
         hits += threads_data[thread_num].hits;
     }
+    return hits;
+}
 
-    _mm_lfence();
-    const uint64_t end = __rdtsc();
-    _mm_lfence();
+template <Generator GenT>
+measurer::Val BenchSomeGen(
+    const size_t cores_cnt, 
+    const size_t buckets, const size_t batches, const size_t iterations, 
+    const uint32_t seed
+) {
+    pthread_barrier_t barrier{};
+    pthread_barrier_t* const barrier_ptr = &barrier;
 
-    pthread_barrier_destroy(&barrier);
+    std::vector<pthread_t> threads(cores_cnt);
+    std::vector<PiThreadData> threads_data{};
 
-    const uint64_t time = end - start;
+    auto setup_func = [cores_cnt, iterations, seed, barrier_ptr, &threads, &threads_data](){
+        SetupPiFunc<GenT>(cores_cnt, iterations, seed, barrier_ptr, threads, threads_data);
+    };
+    auto do_func = [cores_cnt, iterations, &threads, &threads_data](){
+        return 4. * DoPiFunc(cores_cnt, threads, threads_data) / iterations;
+    };
 
-    const double pi = 4. * static_cast<double>(hits) / iterations;
+    const measurer::Val time =measurer::Runner::benchLatency(buckets, batches, setup_func, do_func);
 
-    return {.pi = pi, .time = time};
+    return time;
 }
 
 
 void BenchPi(
-    std::ostream& out, uint32_t seed, size_t iterations
+    std::ostream& out, uint32_t seed, 
+    const size_t buckets, const size_t batches, size_t iterations
 ) {
     const size_t cores_cnt = sysconf(_SC_NPROCESSORS_ONLN);
 
-    PiMeasurement res_scalar = BenchSomeGen<MinstdRand>      (cores_cnt, iterations, seed);
-    PiMeasurement    res_std = BenchSomeGen<std::minstd_rand>(cores_cnt, iterations, seed);
-    PiMeasurement    res_vec = BenchSomeGen<MinstdRandVec>   (cores_cnt, iterations, seed);
+    const measurer::Val res_scalar = BenchSomeGen<MinstdRand>      (
+        cores_cnt, buckets, batches, iterations, seed
+    );
+    const measurer::Val    res_std = BenchSomeGen<std::minstd_rand>(
+        cores_cnt, buckets, batches, iterations, seed
+    );
+    const measurer::Val    res_vec = BenchSomeGen<MinstdRandVec>   (
+        cores_cnt, buckets, batches, iterations, seed
+    );
 
-    auto print_row = [&out](const std::string& name, PiMeasurement res) {
+    auto print_row = [&out](const std::string& name, const measurer::Val res) {
         out << std::left << std::setw(25) << name 
-            << std::fixed
-            << "Pi:   " << std::right  << std::setprecision(10) << std::setw(20) << res.pi << " | "        
-            << "Time: " << std::right  << std::setw(15) << res.time << " clks\n";
+            << "Time: " << std::right << std::setw(30) 
+            << static_cast<uint64_t>(res.mean) << " +/- " << static_cast<uint64_t>(res.stddev) << " clks\n";
     };
 
-    out << "\n===Pi Benchmark===\n"
-        << std::right << std::setw(28) 
-        << "Correct Pi:" 
-        << std::fixed << std::setw(23) 
-        << "3.1415265359" << "\n";
+    out << "\n===Pi Benchmark===\n";
     print_row("std::minstd_rand", res_std);
     print_row("My MinstdRand", res_scalar);
     print_row("My MinstdRandVec", res_vec);

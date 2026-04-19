@@ -32,6 +32,11 @@ std::minstd_rand         Pi:           3.1415043120 | Time:      2659005388 clks
 My MinstdRand            Pi:           3.1415043120 | Time:      1625531700 clks
 My MinstdRandVec         Pi:           3.1415043120 | Time:       341817068 clks
 
+// with measurer
+===Pi Benchmark===
+std::minstd_rand         Time:                      270394981 +/- 608140 clks
+My MinstdRand            Time:                      159690922 +/- 347621 clks
+My MinstdRandVec         Time:                       34444058 +/- 188514 clks
 
 */
 
@@ -74,7 +79,7 @@ int main(int argc, char* argv[]) try {
         }
         case CliParser::Mode::BENCH_PI: {
             minstd_rand::BenchPi(
-                *output_ptr, opts.seed, opts.iterations_cnt
+                *output_ptr, opts.seed, opts.buckets_cnt, opts.batches_cnt, opts.iterations_cnt
             );
             break;
         }

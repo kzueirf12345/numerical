@@ -14,7 +14,8 @@ void BenchThroughput(
 );
 
 void BenchPi(
-    std::ostream& out, uint32_t seed, size_t iterations
+    std::ostream& out, uint32_t seed, 
+    const size_t buckets, const size_t batches, size_t iterations
 );
 
 } // namespace minstd_rand
