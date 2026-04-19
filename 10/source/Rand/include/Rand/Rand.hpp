@@ -30,7 +30,7 @@ public:
     uint32_t operator()() noexcept;
 
     template <std::floating_point T>
-    T get_0_1() noexcept {
+    T Get01() noexcept {
         constexpr const T INV_MODULUS = static_cast<T>(1) / static_cast<T>(MODULUS_);
         return static_cast<T>(operator()()) * INV_MODULUS;
     }
@@ -84,7 +84,7 @@ public:
 
     __m512i operator()();
 
-    __m512 getf_0_1();
+    __m512 Getf01();
 
 private:
 

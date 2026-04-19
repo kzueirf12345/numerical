@@ -37,12 +37,14 @@ endif()
 
 ###===========================================PACKAGES==============================================
 
+find_package(Threads REQUIRED)
 
 ###===========================================SUBDIRECTORY==========================================
 
 add_subdirectory(source/CliParser)
 add_subdirectory(source/Measurer)
 add_subdirectory(source/Rand)
+add_subdirectory(source/Testing)
 
 add_executable(minstd_rand source/main.cpp)
 
@@ -58,4 +60,5 @@ target_link_libraries(minstd_rand PRIVATE
     CliParser
     Measurer
     Rand
+    Testing
 )

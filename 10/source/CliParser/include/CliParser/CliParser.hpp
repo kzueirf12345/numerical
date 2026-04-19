@@ -15,7 +15,8 @@ public:
 #define MODE_LIST_(V)   \
     V(TESTING)          \
     V(BENCH_LATENCY)    \
-    V(BENCH_THROUGHPUT)
+    V(BENCH_THROUGHPUT) \
+    V(BENCH_PI)
 
 #define DEFINE_ENUM_(name) name,
     enum class Mode {

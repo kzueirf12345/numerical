@@ -66,7 +66,7 @@ __m512i MinstdRandVec::operator()() {
     return res;
 }
 
-__m512 MinstdRandVec::getf_0_1() {
+__m512 MinstdRandVec::Getf01() {
     const __m512i i_vals = operator()();
     const __m512 f_vals = _mm512_cvtepi32_ps(i_vals);
     return _mm512_mul_ps(f_vals, inv_modulus_vec_);
