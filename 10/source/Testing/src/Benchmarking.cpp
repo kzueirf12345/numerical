@@ -5,6 +5,7 @@
 #include <immintrin.h>
 #include <iomanip>
 #include <iostream>
+#include <pthread.h>
 #include <random>
 #include <stdbool.h>
 #include <unistd.h>
@@ -100,12 +101,6 @@ void BenchLatency(std::ostream& out, uint32_t seed, size_t buckets, size_t itera
     print_row("My MinstdRandVec", res_vec, 1.0 / 16.0);
 }
 
-struct PiThreadData {
-    size_t iterations = 0;
-    uint32_t seed = 0;
-    size_t hits = 0;
-};
-
 //=====================================PI BENCH=====================================================
 
 static inline constexpr const uint64_t BASE_MULTIPLIER = 48271ull;
@@ -131,8 +126,17 @@ static uint64_t fast_pow_mod(uint64_t pow) {
     return res;
 }
 
+struct PiThreadData {
+    size_t iterations = 0;
+    uint32_t seed = 0;
+    size_t hits = 0;
+
+    pthread_barrier_t* barrier_ptr = nullptr;
+    size_t core_id = 0;
+};
+
 static std::vector<PiThreadData> GeneratePiThreadsData(
-    const size_t cores_cnt, const size_t iterations, const uint32_t seed
+    const size_t cores_cnt, const size_t iterations, const uint32_t seed, pthread_barrier_t* const barrier_ptr
 ) {
     assert(cores_cnt > 0);
     assert(iterations > 0);
@@ -142,7 +146,7 @@ static std::vector<PiThreadData> GeneratePiThreadsData(
     
     std::vector<PiThreadData> threads_data(
         cores_cnt, 
-        {.iterations = iterations_by_thread, .seed = seed, .hits = 0}
+        {.iterations = iterations_by_thread, .seed = seed, .hits = 0, .barrier_ptr = barrier_ptr, .core_id = 0}
     );
 
     threads_data[0].iterations += iterations % cores_cnt;
@@ -151,6 +155,7 @@ static std::vector<PiThreadData> GeneratePiThreadsData(
         threads_data[thread_num].seed = static_cast<uint32_t>(
             (static_cast<uint64_t>(threads_data[thread_num - 1].seed) * multiplier) % MODULUS
         );
+        threads_data[thread_num].core_id = thread_num;
     }
 
     return threads_data;
@@ -174,8 +179,16 @@ concept Generator = minstd_rand::ScalarGenerator<T> || minstd_rand::VectorGenera
 template <Generator GenT>
 static void* PiThreadFoo(void* arg) {
     PiThreadData* data = static_cast<PiThreadData*>(arg);
+
+    cpu_set_t cpuset;
+    CPU_ZERO(&cpuset);
+    CPU_SET(data->core_id, &cpuset);
+    pthread_setaffinity_np(pthread_self(), sizeof(cpuset), &cpuset);
+
     GenT gen(data->seed);
     size_t local_hits = 0;
+
+    pthread_barrier_wait(data->barrier_ptr);
 
     if constexpr (VectorGenerator<GenT>) {
         assert(data->iterations % 8 == 0);
@@ -221,22 +234,28 @@ template <Generator GenT>
 PiMeasurement BenchSomeGen(
     const size_t cores_cnt, const size_t iterations, const uint32_t seed
 ) {
+    pthread_barrier_t barrier{};
+
+    pthread_barrier_init(&barrier, nullptr, cores_cnt + 1);
+
     std::vector<PiThreadData> threads_data{
-        GeneratePiThreadsData(cores_cnt, iterations, seed)
+        GeneratePiThreadsData(cores_cnt, iterations, seed, &barrier)
     };
     std::vector<pthread_t> threads(cores_cnt);
-
-    size_t hits = 0;
-
-    _mm_lfence();
-    const uint64_t start = __rdtsc();
-    _mm_lfence();
 
     for (size_t thread_num = 0; thread_num < cores_cnt; ++thread_num) {
         pthread_create(
             &threads[thread_num], nullptr, PiThreadFoo<GenT>, &threads_data[thread_num]
         );
     }
+
+    size_t hits = 0;
+
+    pthread_barrier_wait(&barrier);
+
+    _mm_lfence();
+    const uint64_t start = __rdtsc();
+    _mm_lfence();
 
     for (size_t thread_num = 0; thread_num < cores_cnt; ++thread_num) {
         pthread_join(threads[thread_num], nullptr);
@@ -246,6 +265,8 @@ PiMeasurement BenchSomeGen(
     _mm_lfence();
     const uint64_t end = __rdtsc();
     _mm_lfence();
+
+    pthread_barrier_destroy(&barrier);
 
     const uint64_t time = end - start;
 
