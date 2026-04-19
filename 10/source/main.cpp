@@ -25,6 +25,14 @@ std::minstd_rand         Pi:           3.1427378800 | Time:      3837439918 clks
 My MinstdRand            Pi:           3.1427378800 | Time:      2103907012 clks
 My MinstdRandVec         Pi:           3.1427378800 | Time:       485354810 clks
 
+// with barriers
+===Pi Benchmark===
+                 Correct Pi:           3.1415265359
+std::minstd_rand         Pi:           3.1415043120 | Time:      2659005388 clks
+My MinstdRand            Pi:           3.1415043120 | Time:      1625531700 clks
+My MinstdRandVec         Pi:           3.1415043120 | Time:       341817068 clks
+
+
 */
 
 int main(int argc, char* argv[]) try {
