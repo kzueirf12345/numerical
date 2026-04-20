@@ -275,7 +275,9 @@ measurer::Val BenchSomeGen(
         return 4. * DoPiFunc(cores_cnt, threads, threads_data) / iterations;
     };
 
-    const measurer::Val time =measurer::Runner::benchLatency(buckets, batches, setup_func, do_func);
+    const measurer::Val time = measurer::Runner::benchLatency(buckets, batches, setup_func, do_func);
+
+    pthread_barrier_destroy(barrier_ptr);
 
     return time;
 }
@@ -299,8 +301,9 @@ void BenchPi(
 
     auto print_row = [&out](const std::string& name, const measurer::Val res) {
         out << std::left << std::setw(25) << name 
-            << "Time: " << std::right << std::setw(30) 
-            << static_cast<uint64_t>(res.mean) << " +/- " << static_cast<uint64_t>(res.stddev) << " clks\n";
+            << "Time: " << std::right << std::setw(15) 
+            << static_cast<uint64_t>(res.mean) << " +/- " 
+            << static_cast<uint64_t>(res.stddev) << " clks\n";
     };
 
     out << "\n===Pi Benchmark===\n";

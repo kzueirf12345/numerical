@@ -10,14 +10,14 @@
 /*!SECTION
 
 ===Latency Benchmark===
-std::minstd_rand         Mean: 114.00000  clks | StdDev: 0.00000 clks
-My MinstdRand            Mean: 114.00000  clks | StdDev: 0.00000 clks
-My MinstdRandVec         Mean: 7.12500    clks | StdDev: 0.00000 clks
+std::minstd_rand         Mean: 114.00000  +/- 0.00000 clks
+My MinstdRand            Mean: 114.00000  +/- 0.00000 clks
+My MinstdRandVec         Mean: 7.12500    +/- 0.00000 clks
 
 ===Throughput Benchmark===
-std::minstd_rand         Mean: 17.89548   clks | StdDev: 0.00341 clks
-My MinstdRand            Mean: 8.94688    clks | StdDev: 0.00137 clks
-My MinstdRandVec         Mean: 2.25551    clks | StdDev: 0.00057 clks
+std::minstd_rand         Mean: 17.89548   +/- 0.00341 clks
+My MinstdRand            Mean: 8.94688    +/- 0.00137 clks
+My MinstdRandVec         Mean: 2.25551    +/- 0.00057 clks
 
 ===Pi Benchmark===
                  Correct Pi:           3.1415265359
@@ -34,9 +34,9 @@ My MinstdRandVec         Pi:           3.1415043120 | Time:       341817068 clks
 
 // with measurer
 ===Pi Benchmark===
-std::minstd_rand         Time:                      270394981 +/- 608140 clks
-My MinstdRand            Time:                      159690922 +/- 347621 clks
-My MinstdRandVec         Time:                       34444058 +/- 188514 clks
+std::minstd_rand         Time:       269189134 +/- 389338 clks
+My MinstdRand            Time:       158619265 +/- 197586 clks
+My MinstdRandVec         Time:        34403942 +/- 68539 clks
 
 */
 
