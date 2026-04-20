@@ -246,6 +246,43 @@ Options:
 	-h                     Show this help message
 ```
 
+## 10
+
+Написание собственного векторного и скалярного гененраторов случайных числе minstd_rand. ПОдробный отчёт находится в папке ```10/report/```.
+
+### Зависимости
+
+| Зависимость           | Минимальная версия    | Назначение                                    |
+|-----------------------|-----------------------|-----------------------------------------------|
+| **make**              | 4.3                   | Удобная обёртка над cmake для бенчей          |
+| **g++**               | 11.4                  | Компиляция C++20 кода                         |
+| **cmake**             | 3.21                  | Сборка проекта                                |
+
+### Использование
+
+#### CMake
+
+```bash
+$ cmake -B build -DCMAKE_BUILD_TYPE=RelWithDebInfo
+$ cmake --build build -j$(nproc)
+$ ./build/minstd_rand --help
+Usage: ./build/minstd_rand [OPTIONS]
+Options:
+  -m, --mode <MODE_NAME>     Specify execution mode | TESTING |BENCH_LATENCY |BENCH_THROUGHPUT |BENCH_PI | (default: TESTING)
+  -o, --output <FILE>        Specify output file (default: stdout)
+  -u, --buckets <VALUE>      Specify buckets count (default: 10)
+  -a, --batches <VALUE>      Specify batches count (default: 50)
+  -n, --iterations <VALUE>   Specify iterations count for testing or in bucket or in batch (default: 10000)
+  -s, --seed <VALUE>         Specify seed for minstd_rand (default: 1)
+  -v, --verbose              Output exectuion progress
+  -h, --help                 Show this help message
+```
+
+
+#### Make 
+
+Аналогично пункту 11.
+
 ## 11 
 
 Библиотека для замера Latency и Throughput.
@@ -266,11 +303,11 @@ Options:
 
 Если хотите собрать тесты, то можно собирать при помощи cmake, тогда это будет кроссплатформенно (ну хотя бы на x86_64). Make написан для собственного удобства, он выставляет фиксированную частоту, отключается AMD_BOOST, а также фиксирует программу на одном ядре и выставляет процессу большой приоритет.
 
-#### Cmake
+#### CMake
 
 ```bash
 $ cmake -B build -DCMAKE_BUILD_TYPE=RelWithDebInfo
-$ cmake --build $(BUILD_FOLDER) -j$(nproc)
+$ cmake --build build -j$(nproc)
 $ ./build/measurer --help
 Usage: ./build/measurer [OPTIONS]
 Options:
