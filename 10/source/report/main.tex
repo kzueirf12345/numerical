@@ -1,0 +1,427 @@
+\documentclass[12pt]{extarticle}
+\linespread{1.5}
+
+\title{Оптимизированное матричное умножение}
+\author{Владимир Попов}
+\date{\today}
+
+\usepackage{cmap}
+\usepackage[T2A]{fontenc}
+\usepackage[english, russian]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage{mathtools}
+\usepackage{amsfonts}
+\usepackage{graphicx}
+\usepackage{listings}
+\usepackage{courier}
+\usepackage{indentfirst}
+\usepackage{stmaryrd}
+\usepackage{caption}
+\captionsetup[figure]{labelformat=empty}
+\usepackage{amssymb}
+\usepackage{multirow, makecell, array}
+\usepackage{mathtools}
+
+\usepackage{tikz}
+\usepackage{tzplot}
+\usetikzlibrary{arrows,decorations.pathmorphing,backgrounds,positioning,fit,petri}
+\usetikzlibrary{calc,intersections,through,backgrounds, quotes, angles}
+\usetikzlibrary{arrows,automata,positioning}
+\tikzset{snake it/.style={decorate, decoration=snake}}
+\usepackage{pgfplots,pgf-pie}
+
+\usepackage{geometry} % Меняем поля страницы
+\geometry{left=2cm}% левое поле
+\geometry{right=1.5cm}% правое поле
+\geometry{top=1cm}% верхнее поле
+\geometry{bottom=2cm}% нижнее поле
+
+\newtheorem{definition}{Определение}
+\newtheorem{remark}{Ремарка!}
+\newtheorem{theorem}{Теорема}
+
+\newcommand{\implyarrow}{%
+  \mathrel{\raisebox{1.3ex}{\rotatebox[origin=c]{90}{\mathhexbox37F}}}}
+
+\DeclareMathOperator{\arccot}{arccot}
+
+\usepackage{listings}
+\usepackage{xcolor}
+
+%New colors defined below
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+
+%Code listing style named "mystyle"
+\lstdefinestyle{mystyle}{
+  backgroundcolor=\color{backcolour},   commentstyle=\color{codegreen},
+  keywordstyle=\color{magenta},
+  numberstyle=\tiny\color{codegray},
+  stringstyle=\color{codepurple},
+  basicstyle=\ttfamily\footnotesize,
+  breakatwhitespace=false,         
+  breaklines=true,                 
+  captionpos=b,                    
+  keepspaces=true,                 
+  numbers=left,                    
+  numbersep=5pt,                  
+  showspaces=false,                
+  showstringspaces=false,
+  showtabs=false,                  
+  tabsize=2
+}
+
+%"mystyle" code listing set
+\lstset{style=mystyle}
+
+\begin{document}
+
+
+\maketitle
+
+\newpage
+
+\tableofcontents
+
+\newpage
+
+\section{Характеристики}
+
+\begin{table}[ht]
+\centering
+\label{tab:system_specs}
+\begin{tabular}{ll}
+\toprule
+\textbf{Параметр} & \textbf{Значение} \\
+\midrule
+\multicolumn{2}{c}{\textit{Аппаратное обеспечение (Hardware)}} \\
+\midrule
+Процессор (CPU) & AMD Ryzen 7 8845H (8 ядер, 16 потоков) \\
+Архитектура & x86\_64 \\
+Базовая / Максимальная частота & 3.8 ГГц / 5.1 ГГц \\
+L1 Кэш (данные/инструкции) & 256 / 256 КиБ \\
+L2 Кэш & 8 МиБ \\
+L3 Кэш & 16 МиБ (общий) \\
+Оперативная память & 32 ГБ LPDDR5x \\
+\midrule
+\multicolumn{2}{c}{\textit{Программное обеспечение (Software)}} \\
+\midrule
+Операционная система & Ubuntu 22.04.5 LTS \\
+Ядро Linux & 6.8.0-106-generic \\
+Компилятор & GCC 11.4 / Clang 11.4 \\
+Библиотека C & glibc 2.35 \\
+Флаги компиляции & \texttt{-DNDEBUG -O3 -march=native} \\
+\bottomrule
+\end{tabular}
+
+\caption{Характеристики тестовой системы и программного окружения}
+\end{table}
+
+На моей машине есть поддержка следующих расширений:
+
+AES, AMD-V  AVX, AVX2, AVX512, FMA3, MMX-plus, SHA, SSE, SSE2, SSE3, SSE4.1, SSE4.2, SSE4A, SSSE3.
+
+Также имеется 2 исполнительных FMA блока.
+
+\subsection{Бенчмаркинг}
+
+Бенчмаркинг производится при помощи библиотеки написанной ранее в задаче 11. Её описание и функционал можете прочитать в README, пункт 11.
+
+\section{Реализация генератора minstd_rand}
+
+Эталоном считается std::minstd\_rand, который возвращает случайные числа в диапазоне $[1, 2^{31}-2]$ по формуле
+
+\begin{equation}
+    \label{eq:minstd_formula}
+    x_{i+1} = (a \cdot x_i + c) \mod m
+\end{equation}
+, где $a = 48271$, $c = 0$, $m = 2^{31} - 1$, $x_0 = seed$
+
+\subsection{Скалярная версия}
+
+m - число Мерсена, то есть
+
+\begin{equation}
+    2^{31} \overset{2^{31}-1}{\equiv} 1 
+\end{equation}
+
+В нашей формуле мы перемножаем $a$ и $x_i$, и результат умещается в 64 бита. Разобьём результат $z = a \cdot x_i$ на нижниие 31 бит и на верхние 33.
+
+\begin{equation}
+\begin{split}
+    x_{i+1} &= (2^{31}\cdot z_{hi} + z_{lo}) \pmod{2^{31} - 1} = \\
+            &= (2^{31} \cdot z_{hi})\pmod{2^{31} - 1} + z_{lo} \pmod{2^{31} - 1} \overset{(\ref{eq:minstd_formula})}{=}  \\
+            &\overset{(\ref{eq:minstd_formula})}{=} (z_{hi} + z_{lo}) \pmod{2^{31} - 1}
+\end{split}
+\end{equation}
+
+, где $z_{hi} = z[63:31] = z \gg 31$, $z_{lo} = z[30:0] = z\;\&\;0x7FFFFFFF$
+
+Таким образом возьмём модуль от произведения, а потом и от получившейся суммы.
+
+\begin{lstlisting}[language=c++]
+static inline constexpr const uint32_t MULTIPLIER_ = UINT32_C(48271);
+static inline constexpr const uint32_t MODULUS_POW_ = 31;
+static inline constexpr const uint32_t MODULUS_ = ((UINT32_C(1) << MODULUS_POW_) - 1);
+
+uint32_t MinstdRand::operator()() noexcept {
+    const uint64_t product = (uint64_t)MULTIPLIER_ * prev_val_;
+    const uint32_t lo = (uint32_t)product & MODULUS_;
+    const uint32_t hi = (uint32_t)(product >> MODULUS_POW_);
+    const uint32_t sum = lo + hi;
+
+    const uint32_t sum_lo = sum & MODULUS_;
+    const uint32_t sum_hi = sum >> MODULUS_POW_;
+
+    prev_val_ = sum_hi + sum_lo;
+
+    return prev_val_;
+}
+\end{lstlisting}
+
+\subsection{Векторная версия}
+
+Выразим формулу для векторной версии
+
+\begin{itemize}
+    \item $x_{i+1} = (a \cdot x_i) \mod m$
+    
+    \item $x_{i+2} = (a \cdot x_{i+1}) \mod m = (a \cdot ((a\cdot x_i) \mod m) \mod m \overset{A_2 = a^2}{=} (A_2 \cdot x_i) \mod m$
+    
+    \item $(x_{i+1}, \dots, x_{i+k}) = (A_k \cdot (x_{i+1-k} \dots, x_i)) \mod m$, где $ \ A_k = a^k \mod m$
+\end{itemize}
+
+Есть нюанс, что векторное умножение работает так, что перемножает только чётные значения операндов, так как результат может занимать в 2 раза больше битов. Поэтому отдельно будем работать с числами на чётных позициях, а отдельно - на нечётных.
+
+\begin{lstlisting}[language=c++]
+static inline constexpr const uint32_t MULTIPLIER_ = UINT32_C(1098894339);
+static inline constexpr const uint32_t MODULUS_POW_ = 31;
+static inline constexpr const uint32_t MODULUS_ = ((UINT32_C(1) << MODULUS_POW_) - 1);
+
+static inline const __m512i multipliers_vec_ = _mm512_set1_epi32(MULTIPLIER_);
+static inline const __m512i modulus_vec_ = _mm512_set1_epi64(MODULUS_);
+static inline const __m512 inv_modulus_vec_ =  _mm512_set1_ps(INV_MODULUS_);
+
+__m512i MinstdRandVec::operator()() {
+    const __m512i prod_even = _mm512_mul_epu32(prev_vals_, multipliers_vec_);
+    const __m512i prev_vals_shifted = _mm512_srli_epi64(prev_vals_, 32);
+    const __m512i prod_odd  = _mm512_mul_epu32(prev_vals_shifted, multipliers_vec_);
+
+    const __m512i lo_even = _mm512_and_si512(prod_even, modulus_vec_);
+    const __m512i hi_even = _mm512_srli_epi64(prod_even, MODULUS_POW_);
+    const __m512i sum_even = _mm512_add_epi64(lo_even, hi_even);
+
+    const __m512i lo_odd = _mm512_and_si512(prod_odd, modulus_vec_);
+    const __m512i hi_odd = _mm512_srli_epi64(prod_odd, MODULUS_POW_);
+    const __m512i sum_odd = _mm512_add_epi64(lo_odd, hi_odd);
+
+    const __m512i sum_lo_even = _mm512_and_si512(sum_even, modulus_vec_);
+    const __m512i sum_hi_even = _mm512_srli_epi64(sum_even, MODULUS_POW_);
+    const __m512i res_even = _mm512_add_epi64(sum_lo_even, sum_hi_even);
+
+    const __m512i sum_lo_odd = _mm512_and_si512(sum_odd, modulus_vec_);
+    const __m512i sum_hi_odd = _mm512_srli_epi64(sum_odd, MODULUS_POW_);
+    const __m512i res_odd = _mm512_add_epi64(sum_lo_odd, sum_hi_odd);
+
+    const __m512i res_odd_shifted = _mm512_slli_epi64(res_odd, 32);
+
+    const __m512i res = prev_vals_;
+
+    prev_vals_ = _mm512_or_si512(res_even, res_odd_shifted);
+
+    return res;
+}
+\end{lstlisting}
+
+Также есть вопрос по поводу того, как инициализировать векторный генератор. Было принято решение написать следующие конструкторы, базирующиеся на скалярном генераторе, чтобы пользователю не приходилось генерировать первую последовательность.
+
+\begin{lstlisting}[language=c++]
+static inline constexpr const uint64_t ALIGNMENT_ = 64;
+static inline constexpr const size_t VALS_IN_VEC_ = 16;
+alignas(ALIGNMENT_) static inline constexpr const uint32_t INIT_VALS_[VALS_IN_VEC_] = {
+    48271,
+    /**/
+    1098894339,
+};
+
+MinstdRandVec::MinstdRandVec() 
+    :   seed(INIT_VALS_)
+{}
+
+MinstdRandVec::MinstdRandVec(uint32_t seed)
+{
+    alignas(ALIGNMENT_) uint32_t arr[VALS_IN_VEC_];
+    MinstdRand gen(seed);
+    for (size_t ind = 0; ind < VALS_IN_VEC_; ++ind) {
+        arr[ind] = gen();
+    }
+    prev_vals_ = _mm512_load_si512(arr);
+}
+\end{lstlisting}
+
+\section{Бенчмаркинг}
+
+\subsection{latency и throughput}
+
+С использованием ранее написанной библиотеки замерим latency и throughput написанных функций и эталонной из libc.
+
+\begin{table}[h!]
+\centering
+\begin{tabular}{l r r}
+\toprule
+\textbf{Реализация} & \textbf{Latency (clks)} & \textbf{Throughput (clks)} \\
+\midrule
+\texttt{std::minstd\_rand} & $114$ & $17.895 \pm 0.0034$ \\
+\texttt{My MinstdRand}    & $114$ & $8.947 \pm 0.0013$ \\
+\texttt{My MinstdRandVec} & $7.125$ & $2.2555 \pm 0.00057$ \\
+\midrule
+\multicolumn{3}{l}{\small \textbf{Условия замера:}} \\
+\multicolumn{3}{l}{\textbf{Latency:} \texttt{buckets\_cnt} = 10, \texttt{iterations\_cnt} = 500\,000} \\
+\multicolumn{3}{l}{\textbf{Throughput:} \texttt{buckets\_cnt} = 10, \texttt{batches\_cnt} = 50, \texttt{iterations\_cnt} = 500\,000} \\
+\bottomrule
+\end{tabular}
+\caption{Результаты бенчмарков производительности}
+\label{tab:benchmarks}
+\end{table}
+
+\subsection{Вычисление числа пи}
+
+Будем вычислять число Пи по методу Монте-Карло. Возьмём квадрат со стороной $2^31 - 1$, будем генерировать случайные координаты из него нашими генераторами и проверять лежат ли они в четверти круга с таким же радиусом с центром в углу квадрата. Тогда итоговая формула числа Пи
+
+\begin{equation}
+    \pi \approx \frac{4 \cdot \texttt{hits}}{\texttt{iterations}} 
+\end{equation}
+
+Эта задача очень хорошо параллелиться, так как генерация чисел и расчёт того подходит оно нам или нет не зависят от других итераций. Только в конце придётся просуммировать количество попаданий в круг с каждого потока.
+
+Для того, чтобы лучше разобраться в том, как работают параллельные вычисления будем писать при помощи pthreads. Это Linux-специфичные потоки, которые под собой содержат создание задач. Их плюс в том, что есть возможность закрепить поток на конкретном ядре, чтобы в замеры не попало время случайной смены контекста, которая бывает очень долгой. 
+
+Время закрепления потока на ядре большое по тем же причинам, поэтому будем использовать механизм барьеров, чтобы выполнение вычислений и замер времени начались в одно время без дополнительных накладных расходов внутри себя. Для этого скажем барьеру, что он должен будет ждать \texttt{cores_cnt + 1} потоков (+1, так как есть ещё основной поток, который проводит замер), после этого запустим потоки с функциями считающими свою часть, которые в свою очередь закрепят себя же на конкретное ядро и проинициализируют генератор, а после будут ждать пока все потоки завершат подготовку. Как только все будут готовы, в том числе основной поток к тому, чтобы замерять время, начнём вычисление. Когда все потоки закончат мы сложим в одну переменную количество всех попаданий в круг.
+
+Для того, чтобы последовательности генератора не пересекались и были уникальным воспользуемся техникой skip-ahead. Каждый поток будет отвечать за свою часть последовательности, длина которой будет равна количеству итераций поделённых на количество создаваемых потоков (потоков будем создавать столько же, сколько ядер, по одному на каждое. Для того, чтобы узнать их количество в runtime можно использовать \texttt{sysconf(\_SC\_NPROCESSORS\_ONLN)}). Чтобы преподсчитать сид для каждого потока, нужно возвести в достаточно большую степень наш множитель по модулю (формула была ранее). Для этого будем использовать алгоритм быстрого возведения в степень.
+
+Далее идёт упрощённый код, чтобы показать основную идею реализации.
+
+\begin{lstlisting}[language=c++]
+uint64_t BASE_MULTIPLIER = 48271ull;
+struct PiThreadData {
+    size_t iterations = 0;
+    uint32_t seed = 0;
+    size_t hits = 0;
+    pthread_barrier_t* barrier_ptr = nullptr;
+    size_t core_id = 0;
+};
+
+static std::vector<PiThreadData> GeneratePiThreadsData(
+    const size_t cores_cnt, const size_t iterations, const uint32_t seed, pthread_barrier_t* const barrier_ptr
+) {
+    const uint64_t multiplier = fast_pow_mod(iterations / cores_cnt);
+    
+    /*Boring cycle, that create threads_data*/
+    return threads_data;
+}
+
+template <GeneratorConcept GenT>
+static void* PiThreadFoo(void* data) {
+    cpu_set_t cpuset;
+    CPU_SET(data->core_id, &cpuset);
+    pthread_setaffinity_np(pthread_self(), sizeof(cpuset), &cpuset);
+
+    GenT gen(data->seed);
+
+    pthread_barrier_wait(data->barrier_ptr);
+
+    if constexpr (VectorGenerator<GenT>) {
+        for (size_t iteration = 0; iteration < data->iterations / 8; ++iteration) {
+            const __m512i vec = gen();
+
+            const __m512i x2_vec = _mm512_mul_epu32(vec, vec);
+            const __m512i vec_shifted = _mm512_srli_epi64(vec, 32);
+            const __m512i y2_vec  = _mm512_mul_epu32(vec_shifted, vec_shifted);
+            const __m512i dist2_vec = _mm512_add_epi64(x2_vec, y2_vec);
+
+            data->hits += _mm_popcnt_u32(_mm512_cmple_epu64_mask(dist2_vec, modulus2_vec));
+        }
+    }
+    else if constexpr (ScalarGenerator<GenT>) {
+        for (size_t iteration = 0; iteration < data->iterations; ++iteration) {
+            const uint64_t x = static_cast<uint64_t>(gen());
+            const uint64_t y = static_cast<uint64_t>(gen());
+            data->hits += (x * x + y * y <= MODULUS2);
+        }
+    }
+    return nullptr;
+}
+
+template <GeneratorConcept GenT>
+void SetupPiFunc(
+    const size_t cores_cnt, const size_t iterations, const uint32_t seed, 
+    pthread_barrier_t* const barrier_ptr,
+    std::vector<pthread_t>& threads, std::vector<PiThreadData>& threads_data
+) {
+    pthread_barrier_init(barrier_ptr, nullptr, cores_cnt + 1);
+    threads_data = GeneratePiThreadsData(cores_cnt, iterations, seed, barrier_ptr);
+    for (size_t thread_num = 0; thread_num < cores_cnt; ++thread_num) {
+        pthread_create(
+            &threads[thread_num], nullptr, PiThreadFoo<GenT>, &threads_data[thread_num]
+        );
+    }
+    pthread_barrier_wait(barrier_ptr);
+}
+
+size_t DoPiFunc(const size_t cores_cnt, const std::vector<pthread_t>& threads, std::vector<PiThreadData>& threads_data) {
+    size_t hits = 0;
+    for (size_t thread_num = 0; thread_num < cores_cnt; ++thread_num) {
+        pthread_join(threads[thread_num], nullptr);
+        hits += threads_data[thread_num].hits;
+    }
+    return hits;
+}
+
+template <GeneratorConcept GenT>
+measurer::Val BenchSomeGen(const size_t cores_cnt, const size_t buckets, const size_t batches, const size_t iterations, const uint32_t seed) {
+    /*Create barrier and vectors with threads_data*/
+
+    auto setup_func = [/*...*/](){SetupPiFunc<GenT>(/*...*/);};
+    auto do_func = [/*...*/](){ return 4. * DoPiFunc(/*...*/) / iterations; };
+
+    const measurer::Val time = measurer::Runner::benchLatency(buckets, batches, setup_func, do_func);
+
+    /*destroy barrier*/
+
+    return time;
+}
+
+void BenchPi(uint32_t seed, const size_t buckets, const size_t batches, size_t iterations) {
+    const size_t cores_cnt = sysconf(_SC_NPROCESSORS_ONLN);
+    const measurer::Val res_scalar = BenchSomeGen<MinstdRand>      (/*...*/);
+    const measurer::Val    res_std = BenchSomeGen<std::minstd_rand>(/*...*/);
+    const measurer::Val    res_vec = BenchSomeGen<MinstdRandVec>   (/*...*/);
+    
+    /*output*/
+}
+\end{lstlisting}
+
+Точность вычисления таким методом при 100\,000\,000 итераций до 4 знака после запятой $\mathbf{3.1415}04$. Не очень круто, но это издержки метода, он долго сходится. 
+
+\begin{table}[h!]
+\centering
+\begin{tabular}{l r}
+\toprule
+\textbf{Реализация} & \textbf{Latency (clks)} \\
+\midrule
+\texttt{std::minstd\_rand} & $269\,200\,000 \pm 400\,000$ \\
+\texttt{My MinstdRand}    & $158\,600\,000 \pm 200\,000$ \\
+\texttt{My MinstdRandVec} & $34\,400\,000 \pm 68\,000$ \\
+\midrule
+\multicolumn{2}{l}{\textbf{Условия замера:}} \\
+\multicolumn{2}{l}{\texttt{buckets} = 10, \texttt{batches} = 50, \texttt{iterations} = 100\,000\,000} \\
+\bottomrule
+\end{tabular}
+\caption{Сравнение производительности на примере вычисления числа Пи}
+\label{tab:pi_benchmark}
+\end{table}
+
+\end{document}
