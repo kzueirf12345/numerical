@@ -8,7 +8,7 @@ CliParser::CliParser(int argc, char* argv[]) {
 }
 
 void CliParser::printHelp(std::ostream& output) {
-    output << "Usage: ./build/measurer [OPTIONS]\n"
+    output << "Usage: ./build/minstd_rand [OPTIONS]\n"
               "Options:\n"
               "  -m, --mode <MODE_NAME>     Specify execution mode | "
               
