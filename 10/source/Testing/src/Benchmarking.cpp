@@ -142,7 +142,7 @@ static std::vector<PiThreadData> GeneratePiThreadsData(
     assert(iterations > 0);
 
     const size_t iterations_by_thread = iterations / cores_cnt;
-    const uint64_t multiplier = fast_pow_mod(iterations_by_thread);
+    const uint64_t multiplier = fast_pow_mod(iterations_by_thread * 2);
     
     std::vector<PiThreadData> threads_data(
         cores_cnt, 
