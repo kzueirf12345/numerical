@@ -34,6 +34,8 @@ Options:
 
 ## 5 
 
+Тестирование генераторов случайных чисел. Отчёт смотреть в папке ```5/report```
+
 ### Зависимости
 
 | Зависимость           | Минимальная версия    | Назначение                                    |
@@ -255,3 +257,283 @@ Options:
 ```bash
 $ git submodule update --init --recursive
 ```
+
+## 9
+
+Оптимизация перемножения матриц. Подробный отчёт лежит в ```9/report/```.
+
+### Зависимости
+
+| Зависимость           | Минимальная версия    | Назначение                                    |
+|-----------------------|-----------------------|-----------------------------------------------|
+| **make**              | 4.3                   | Сборка проекта и зависимостей                 |
+| **gcc**               | 11.4                  | Компиляция C кода                         |
+
+### Использование
+
+| Команда               | Назначение    
+|-----------------------|-------------------------------------|
+| ```make build```      | Собирает проект                     |
+| ```make clean```      | Очищает папку build и логи          | 
+| ```make rebuild```    | clean + build                       |
+| ```make start```      | Запускает проект                    | 
+| ```make all```        | build + start                       |
+| ```make setup_cpu```  | Установить фиксированную частоту на все ядра и отключить AMD_BOOST |
+| ```make restore_cpu```| включить AMD_BOOST и влючить powersave на всех ядрах |
+| ```make bench```      | build (release) + setup_cpu + запуск с большим приоритетом и на 1 ядре + restore_cpu | 
+
+Опции можно передать через аргумент ```OPTS``` в двойных ковычках, либо же напрямую исполняемому файлу. Для просмотра всех возможных опций в качестве аргумента передайте -h.
+
+```bash
+$ make OPTS="-h"
+Usage: matmul.out [OPTIONS]
+Options:
+	-l <FOLDER>            Specify folder for logs (default: ./log/)
+	-s <VALUE>             Specify seed for testing random values (default: random)
+	-b <VALUE>             Specify buckets count (default: 10)
+	-n <VALUE>             Specify iterations count by one bucket (default: 50000)
+	-h                     Show this help message
+```
+
+## 10
+
+Написание собственного векторного и скалярного гененраторов случайных числе minstd_rand. ПОдробный отчёт находится в папке ```10/report/```.
+
+### Зависимости
+
+| Зависимость           | Минимальная версия    | Назначение                                    |
+|-----------------------|-----------------------|-----------------------------------------------|
+| **make**              | 4.3                   | Удобная обёртка над cmake для бенчей          |
+| **g++**               | 11.4                  | Компиляция C++20 кода                         |
+| **cmake**             | 3.21                  | Сборка проекта                                |
+
+### Использование
+
+#### CMake
+
+```bash
+$ cmake -B build -DCMAKE_BUILD_TYPE=RelWithDebInfo
+$ cmake --build build -j$(nproc)
+$ ./build/minstd_rand --help
+Usage: ./build/minstd_rand [OPTIONS]
+Options:
+  -m, --mode <MODE_NAME>     Specify execution mode | TESTING |BENCH_LATENCY |BENCH_THROUGHPUT |BENCH_PI | (default: TESTING)
+  -o, --output <FILE>        Specify output file (default: stdout)
+  -u, --buckets <VALUE>      Specify buckets count (default: 10)
+  -a, --batches <VALUE>      Specify batches count (default: 50)
+  -n, --iterations <VALUE>   Specify iterations count for testing or in bucket or in batch (default: 10000)
+  -s, --seed <VALUE>         Specify seed for minstd_rand (default: 1)
+  -v, --verbose              Output exectuion progress
+  -h, --help                 Show this help message
+```
+
+
+#### Make 
+
+Аналогично пункту 11.
+
+## 11 
+
+Библиотека для замера Latency и Throughput.
+
+### Зависимости
+
+| Зависимость           | Минимальная версия    | Назначение                                    |
+|-----------------------|-----------------------|-----------------------------------------------|
+| **make**              | 4.3                   | Удобная обёртка над cmake для бенчей          |
+| **g++**               | 11.4                  | Компиляция C++20 кода                         |
+| **cmake**             | 3.21                  | Сборка проекта                                |
+
+Если требуется прогнать тесты из main, а не просто подключить header, то требуется libm 2.35 и mpfr 4.1.0. Там тестируются логарифмы
+
+### Использование
+
+Если хотите использовать как only header библиотеку, то просто скопируйте source/Measurer/include/Measurer/Measurer.hpp к себе в проект. Описание методов будет далее.
+
+Если хотите собрать тесты, то можно собирать при помощи cmake, тогда это будет кроссплатформенно (ну хотя бы на x86_64). Make написан для собственного удобства, он выставляет фиксированную частоту, отключается AMD_BOOST, а также фиксирует программу на одном ядре и выставляет процессу большой приоритет.
+
+#### CMake
+
+```bash
+$ cmake -B build -DCMAKE_BUILD_TYPE=RelWithDebInfo
+$ cmake --build build -j$(nproc)
+$ ./build/measurer --help
+Usage: ./build/measurer [OPTIONS]
+Options:
+  -m, --mode <MODE_NAME>     Specify execution mode | LATENCY |THROUGHPUT | (default: LATENCY)
+  -o, --output <FILE>        Specify output file (default: stdout)
+  -u, --buckets <VALUE>      Specify buckets count (default: 10)
+  -a, --batches <VALUE>      Specify batches count (default: 50)
+  -n, --iterations <VALUE>   Specify iterations count in bucket or in batch (default: 50000)
+  -s, --seed <VALUE>         Specify seed for random (default: random)
+  -v, --verbose              Output exectuion progress
+  -h, --help                 Show this help message
+```
+
+#### Make
+
+| Команда               | Назначение    
+|-----------------------|-------------------------------------|
+| ```make setup_cpu```  | Установить фиксированную частоту на все ядра и отключить AMD_BOOST |
+| ```make restore_cpu```| включить AMD_BOOST и влючить powersave на всех ядрах |
+| ```make bench```      | build + setup_cpu + запуск с большим приоритетом и на 1 ядре + restore_cpu |  
+
+### Функционал
+
+Всё находится в namespace measurer
+
+#### DoNotOptimizeAway
+
+```cpp
+template <typename T>
+static inline void DoNotOptimizeAway(T&& val);
+```
+
+Функция, которая принимает какое-то значение, которое вы не хотите, чтобы выкидывалось, хоть оно и не используется. Внутри пустая ассемблерная вставка, которая принимает этот аргумент и говорит компилятору, что внутри происходит работа с памятью.
+
+#### Val
+
+```cpp
+struct Val {
+    double mean; ///< среднее значение
+    double stddev; ///< среднеквадратичное отклонение
+};
+```
+
+#### Runner::benchLatency
+
+```cpp
+template <
+  typename SetupF, ///< Тип функции подготовки данных. Не принимает аргументов.
+  typename F       ///< Тип замерямой функции. Не принимает аргументов.
+>
+Val Runner::benchLatency(
+    const size_t buckets_cnt, ///< Количесто замерямых бакетов, среди них берёться среднее значение и считает ошибка через TwoPass метод
+    const size_t bucket_iterations_cnt, ///< Количество итераций в 1 бакете, среди всех итераций берётся минимальной значение, как значение с наименьшим вмешательство "шума" ОС, смены констекста и остального не относящегося к функции
+    SetupF&& setup_func, ///< Функция подготовки данных, вызывается перед выполнением каждой итерации, чтобы сгенерировать какие-то необходимые входные данные, либо прогреть кэши
+    F&& func ///< Замеряемая функция
+)
+```
+
+Метод, для замера Latency функции. В данный метод не передаются аргументы, так как подразумевается, что setup_func и func будут лямбдами, которые будут захватывать необходимые аргументы через контекст. Вот пример использования
+
+```cpp
+double arg = 0;
+std::mt19937_64 gen{seed};
+std::uniform_real_distribution<double> dist(1., 1000.);
+
+auto log = [&arg](){ 
+    return std::log(arg); 
+};
+auto log_setup = [&arg, &gen, &dist](){ 
+    static_assert(sizeof(arg) == sizeof(dist(gen)), "");
+    arg = std::bit_cast<double>(dist(gen));
+};
+
+const measurer::Val log_res = measurer::Runner::benchLatency(
+    buckets_cnt, iterations_cnt, log_setup, log
+);
+```
+
+Также есть перегрузка без setup_func, которая из под себя вызывает эту же версию, но вместо setup_func передаёт саму замеряемую функцию, чтобы перед каждым замером прогревать кэши.
+
+#### Runner::benchThroughput
+
+```cpp
+template <
+    typename SetupF, ///< Тип функции подготовки данных. Не принимает аргументов.
+    typename F       ///< Тип замерямой функции. Принимает аргумент индекса итерации, чтобы знать откуда брать данные.
+>
+Val Runner::benchThroughput(
+    const size_t buckets_cnt, ///< Количесто замерямых бакетов, среди них берёться среднее значение и считает ошибка через TwoPass метод
+    const size_t batches_cnt, ///< Количество батчей в одном бакете. Среди всех батчей берёться минимальной значение, как значение с наименьшим вмешательство "шума" ОС, смены констекста и остального не относящегося к функции
+    const size_t batch_iterations_cnt, ///< Количество итераций в одном батче. В этом цикле исполняется только func и больше ничего, чтобы минизировать ошибку. Замеряется время выполнения одного батча и делиться на данное число, как среднее арифметическое. Результат получается с погрешностью на времени выполнения прыжков и инкрементации счётчика цикла, а также учитывается время выполнения последней инструкции цикла.
+    SetupF&& setup_func, ///< Функция подготовки данных, вызывается перед выполнением каждого батча. Должна предоставлять для func batch_iterations_cnt входных данных
+    F&& func ///< Замеряемая функция. Принимает номер текущей итерации в батче и в зависимости от этого берёт необходимые данные и проводит вычисления.
+)
+```
+
+Метод, для замера Throughput функции. В данный метод не передаются аргументы, так как подразумевается, что setup_func и func будут лямбдами, которые будут захватывать необходимые аргументы через контекст. Вот пример использования
+
+```cpp
+std::vector<double> batch_args(iterations_cnt);
+std::mt19937_64 gen{seed};
+std::uniform_real_distribution<double> dist(1., 1000.);
+
+auto log = [&batch_args](const size_t i){ 
+    return std::log(batch_args[i]); 
+};
+auto log_setup = [&batch_args, &gen, &dist](){ 
+    static_assert(sizeof(*batch_args.data()) == sizeof(dist(gen)), "");
+    for (double& arg : batch_args) {
+        arg = std::bit_cast<double>(dist(gen));
+    }
+};
+
+const measurer::Val log_res = measurer::Runner::benchThroughput(
+    buckets_cnt, batches_cnt, iterations_cnt, log_setup, log
+);
+```
+
+Стоит отметить, что не имеет особого смысла тестировать throughput для нагруженных больших функций, так как скорее всего весь конвейер забивается в самой функции, а накладные расходы на передачу аргументов, цикл и остальное могут дать результат даже больше, чем latency. В тестах провёднных в main над mpfr как раз это и наблюдается. При этом std::log показывает корректные данные.
+
+### Тестирование
+
+Параметры машины, на которой проводилось тестирование
+
+| Параметр | Значение |
+| :--- | :--- |
+| **Аппаратное обеспечение** | **(Hardware)** |
+| Процессор (CPU) | AMD Ryzen 7 8845H (8 ядер, 16 потоков) |
+| Архитектура | `x86_64` |
+| Базовая / Максимальная частота | 3.8 ГГц / 5.1 ГГц |
+| L1 Кэш (данные/инструкции) | 256 / 256 КиБ |
+| L2 Кэш | 8 МиБ |
+| L3 Кэш | 16 МиБ (общий) |
+| Оперативная память | 32 ГБ LPDDR5x |
+| **Программное обеспечение** | **(Software)** |
+| Операционная система | Ubuntu 22.04.5 LTS |
+| Ядро Linux | `6.8.0-106-generic` |
+| Компилятор | GCC 11.4 / Clang 11.4 |
+| Библиотека C | glibc 2.35 |
+| Флаги компиляции | `-std=c++20 -O2 -g -DNDEBUG` |
+
+---
+
+#### Результаты
+
+```
+===Benchmarking Latency===
+buckets_cnt:       10
+iterations_cnt:    50000
+clks_mpfr:         4434.6 +/- 44.0611
+clks_libm:         152 +/- 0
+mpfr_div_libm:     29.175 +/- 0.289875
+
+===Benchmarking Throughput===
+buckets_cnt:       10
+batches_cnt:       50
+iterations_cnt:    10000
+clks_mpfr:         4859.31 +/- 133.601
+clks_libm:         20.4075 +/- 0.00196231
+mpfr_div_libm:     238.114 +/- 6.5467
+```
+
+Как можно видеть для std::log всё померялось очень даже хорошо, так как функция быстрая и занимает не много тактов, не полностью загружает конвейр внутри себя. При этом mpfr работает с динамическими структурами и более тяжеловесная. В значение latency поверить можно, но throughput смысла не имеет.
+
+### UPD: Sleef
+
+Было решено также протестировать бибилиотеку для векторных вычислений sleef. Для этого я добавли флаг -march=native, который в том числе добавляет поддержку avx512f
+
+```
+===Benchmarking Throughput===
+buckets_cnt:       10
+batches_cnt:       50
+iterations_cnt:    10000
+clks_sleef:        2.49014 +/- 0.003605
+clks_libm:         14.0296 +/- 1.87244e-15
+libm_div_sleef:    5.63406 +/- 0.00815648
+```
+
+Улучшение производительно libm обучлавливается автоматической векоризацией цикла компилятором. Но при этом sleef показывает себя сильно лучше. Конкретно тестировалась функция ```Sleef_logf16_u10avx512f```
+
