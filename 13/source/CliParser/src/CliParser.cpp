@@ -9,13 +9,6 @@ CliParser::CliParser(int argc, char* argv[]) {
 void CliParser::printHelp(std::ostream& output) {
     output << "Usage: ./build/call_option [OPTIONS]\n"
               "Options:\n"
-              "  -m, --mode <MODE_NAME>     Specify execution mode | "
-              
-#define DEFINE_ENUM_(name) << #name << " |"
-        MODE_LIST_(DEFINE_ENUM_)
-#undef DEFINE_ENUM_
-              
-           << " (default: LATENCY)\n"
               "  -o, --output <FILE>        Specify output file (default: stdout)\n"
               "  -c, --start-cost <VALUE>   Specify start cost (default: 100)\n"
               "  -r, --rate <VALUE>         Specify rate (default: 0.05)\n"
@@ -58,10 +51,6 @@ void CliParser::parse(int argc, char* argv[]) {
         else if (arg == "-p" || arg == "--period") {
             checkRequireArgument(i, argc, arg);
             options_.period = parseDouble(argv[++i], "--period");
-        }
-        else if (arg == "-m" || arg == "--mode") {
-            checkRequireArgument(i, argc, arg);
-            options_.mode = parseMode(argv[++i], "--mode");
         }
         else if (arg == "-n" || arg == "--iterations") {
             checkRequireArgument(i, argc, arg);
@@ -126,11 +115,4 @@ double CliParser::parseDouble(const char* str, const std::string& option) try {
 }
 catch (...) {
     throw std::invalid_argument("Invalid size_t value for " + option + ": " + str);
-}
-
-CliParser::Mode CliParser::parseMode(const char* str, const std::string& option) try {
-    return mode_str2enum_map.at(str);
-}
-catch (...) {
-    throw std::invalid_argument("Invalid mode for " + option + ": " + str);
 }
