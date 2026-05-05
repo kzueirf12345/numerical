@@ -40,6 +40,7 @@ endif()
 ###===========================================SUBDIRECTORY==========================================
 
 add_subdirectory(source/CliParser)
+add_subdirectory(source/rialto)
 
 add_executable(call_option source/main.cpp)
 
@@ -53,4 +54,5 @@ endif()
 
 target_link_libraries(call_option PRIVATE
     CliParser
+    rialto
 )

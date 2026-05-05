@@ -39,12 +39,14 @@ public:
 
     struct Options {
         std::string output_file = "";
-        size_t buckets_cnt = 10;
-        size_t batches_cnt = 50;
-        size_t iterations_cnt = 50000;
+        size_t iterations_cnt = 1000000;
+        double start_cost = 100;
+        double rate = 0.05;
+        double volatility = 0.1;
+        double strike = 100;
+        double period = 1;
         Mode mode = Mode::BASE;
         uint64_t seed = std::random_device{}();
-        bool verbose = false;
         bool help_requested = false;
     };
 
@@ -65,6 +67,7 @@ private:
 
     static uint64_t parseUint64(const char* str, const std::string& option);
     static size_t parseSize(const char* str, const std::string& option);
+    static double parseDouble(const char* str, const std::string& option);
     static Mode parseMode(const char* str, const std::string& option);
 
 private:

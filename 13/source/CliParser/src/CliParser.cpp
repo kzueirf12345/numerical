@@ -17,11 +17,13 @@ void CliParser::printHelp(std::ostream& output) {
               
            << " (default: LATENCY)\n"
               "  -o, --output <FILE>        Specify output file (default: stdout)\n"
-              "  -u, --buckets <VALUE>      Specify buckets count (default: 10)\n"
-              "  -a, --batches <VALUE>      Specify batches count (default: 50)\n"
-              "  -n, --iterations <VALUE>   Specify iterations count in bucket or in batch (default: 50000)\n"
+              "  -c, --start-cost <VALUE>   Specify start cost (default: 100)\n"
+              "  -r, --rate <VALUE>         Specify rate (default: 0.05)\n"
+              "  -v, --volatility <VALUE>   Specify volatility (default: 0.1)\n"
+              "  -t, --strike <VALUE>       Specify strike (default: 100)\n"
+              "  -p, --period <VALUE>       Specify period (default: 1)\n"
+              "  -n, --iterations <VALUE>   Specify iterations count (default: 1000000)\n"
               "  -s, --seed <VALUE>         Specify seed for random (default: random)\n"
-              "  -v, --verbose              Output exectuion progress\n"
               "  -h, --help                 Show this help message\n";
 }
 
@@ -37,13 +39,25 @@ void CliParser::parse(int argc, char* argv[]) {
             checkRequireArgument(i, argc, arg);
             options_.output_file = argv[++i];
         }
-        else if (arg == "-u" || arg == "--buckets") {
+        else if (arg == "-c" || arg == "--start-cost") {
             checkRequireArgument(i, argc, arg);
-            options_.buckets_cnt = parseSize(argv[++i], "--buckets");
+            options_.start_cost = parseDouble(argv[++i], "--start-cost");
         }
-        else if (arg == "-a" || arg == "--batches") {
+        else if (arg == "-r" || arg == "--rate") {
             checkRequireArgument(i, argc, arg);
-            options_.batches_cnt = parseSize(argv[++i], "--batches");
+            options_.rate = parseDouble(argv[++i], "--rate");
+        }
+        else if (arg == "-v" || arg == "--volatility") {
+            checkRequireArgument(i, argc, arg);
+            options_.volatility = parseDouble(argv[++i], "--volatility");
+        }
+        else if (arg == "-t" || arg == "--strike") {
+            checkRequireArgument(i, argc, arg);
+            options_.strike = parseDouble(argv[++i], "--strike");
+        }
+        else if (arg == "-p" || arg == "--period") {
+            checkRequireArgument(i, argc, arg);
+            options_.period = parseDouble(argv[++i], "--period");
         }
         else if (arg == "-m" || arg == "--mode") {
             checkRequireArgument(i, argc, arg);
@@ -56,9 +70,6 @@ void CliParser::parse(int argc, char* argv[]) {
         else if (arg == "-s" || arg == "--seed") {
             checkRequireArgument(i, argc, arg);
             options_.seed = parseUint64(argv[++i], "--seed");
-        }
-        else if (arg == "-v" || arg == "--verbose") {
-            options_.verbose = true;
         }
         else if (arg.starts_with('-')) {
             throw std::invalid_argument("Unknown option: " + arg);
@@ -98,6 +109,20 @@ size_t CliParser::parseSize(const char* str, const std::string& option) try {
     }
 
     return static_cast<size_t>(val);
+}
+catch (...) {
+    throw std::invalid_argument("Invalid size_t value for " + option + ": " + str);
+}
+
+double CliParser::parseDouble(const char* str, const std::string& option) try {
+    size_t pos = 0;
+
+    double val = std::stod(str, &pos);
+    if (pos != std::strlen(str)) {
+        throw std::invalid_argument("");
+    }
+
+    return static_cast<double>(val);
 }
 catch (...) {
     throw std::invalid_argument("Invalid size_t value for " + option + ": " + str);
