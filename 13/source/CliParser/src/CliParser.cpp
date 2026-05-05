@@ -10,12 +10,8 @@ void CliParser::printHelp(std::ostream& output) {
     output << "Usage: ./build/call_option [OPTIONS]\n"
               "Options:\n"
               "  -o, --output <FILE>        Specify output file (default: stdout)\n"
-              "  -c, --start-cost <VALUE>   Specify start cost (default: 100)\n"
-              "  -r, --rate <VALUE>         Specify rate (default: 0.05)\n"
-              "  -v, --volatility <VALUE>   Specify volatility (default: 0.1)\n"
-              "  -t, --strike <VALUE>       Specify strike (default: 100)\n"
-              "  -p, --period <VALUE>       Specify period (default: 1)\n"
-              "  -n, --iterations <VALUE>   Specify iterations count (default: 1000000)\n"
+              "  -p, --options <VALUE>      Specify options count (default: 100)\n"
+              "  -n, --iterations <VALUE>   Specify iterations count (default: 100000)\n"
               "  -s, --seed <VALUE>         Specify seed for random (default: random)\n"
               "  -h, --help                 Show this help message\n";
 }
@@ -32,33 +28,17 @@ void CliParser::parse(int argc, char* argv[]) {
             checkRequireArgument(i, argc, arg);
             options_.output_file = argv[++i];
         }
-        else if (arg == "-c" || arg == "--start-cost") {
-            checkRequireArgument(i, argc, arg);
-            options_.start_cost = parseDouble(argv[++i], "--start-cost");
-        }
-        else if (arg == "-r" || arg == "--rate") {
-            checkRequireArgument(i, argc, arg);
-            options_.rate = parseDouble(argv[++i], "--rate");
-        }
-        else if (arg == "-v" || arg == "--volatility") {
-            checkRequireArgument(i, argc, arg);
-            options_.volatility = parseDouble(argv[++i], "--volatility");
-        }
-        else if (arg == "-t" || arg == "--strike") {
-            checkRequireArgument(i, argc, arg);
-            options_.strike = parseDouble(argv[++i], "--strike");
-        }
-        else if (arg == "-p" || arg == "--period") {
-            checkRequireArgument(i, argc, arg);
-            options_.period = parseDouble(argv[++i], "--period");
-        }
         else if (arg == "-n" || arg == "--iterations") {
             checkRequireArgument(i, argc, arg);
-            options_.iterations_cnt = parseSize(argv[++i], "--iterations");
+            options_.iterations_cnt = parseSize(argv[++i], arg);
+        }
+        else if (arg == "-p" || arg == "--options") {
+            checkRequireArgument(i, argc, arg);
+            options_.options_cnt = parseSize(argv[++i], arg);
         }
         else if (arg == "-s" || arg == "--seed") {
             checkRequireArgument(i, argc, arg);
-            options_.seed = parseUint64(argv[++i], "--seed");
+            options_.seed = parseUint64(argv[++i], arg);
         }
         else if (arg.starts_with('-')) {
             throw std::invalid_argument("Unknown option: " + arg);

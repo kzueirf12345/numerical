@@ -16,7 +16,7 @@ if(MSVC)
 else()
     add_library(project_warnings INTERFACE)
     target_compile_options(project_warnings INTERFACE
-        -Wall -Wextra -Werror -Wpedantic -march=native
+        -Wall -Wextra -Werror -Wpedantic -march=native -mavx512f -fopenmp
         $<$<CONFIG:DEBUG>:-Og -g>
         $<$<CONFIG:RELEASE>:-O3 -DNDEBUG>
     )
@@ -37,10 +37,15 @@ endif()
 
 ###===========================================PACKAGES==============================================
 
+find_package(sleef REQUIRED)
+find_package(OpenMP REQUIRED)
+find_package(Threads REQUIRED)
+
 ###===========================================SUBDIRECTORY==========================================
 
 add_subdirectory(source/CliParser)
 add_subdirectory(source/rialto)
+add_subdirectory(source/Gen)
 
 add_executable(call_option source/main.cpp)
 
@@ -53,6 +58,11 @@ if(SANITIZE AND NOT MSVC)
 endif()
 
 target_link_libraries(call_option PRIVATE
+    sleef::sleef
+    OpenMP::OpenMP_CXX 
+    Threads::Threads 
+
     CliParser
     rialto
+    Gen
 )

@@ -1,8 +1,8 @@
-add_library(rialto STATIC
-    src/rialto.cpp
+add_library(Gen STATIC
+    src/Rand.cpp
 )
 
-target_include_directories(rialto
+target_include_directories(Gen
     PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
         $<INSTALL_INTERFACE:include>
@@ -10,19 +10,16 @@ target_include_directories(rialto
         ${CMAKE_CURRENT_SOURCE_DIR}/src
 )
 
-target_link_libraries(rialto PRIVATE project_warnings)
+target_link_libraries(Gen PRIVATE project_warnings)
 
 if(TARGET project_sanitizers)
-    target_link_libraries(rialto PRIVATE project_sanitizers)
+    target_link_libraries(Gen PRIVATE project_sanitizers)
 endif()
 
 target_link_libraries(rialto PRIVATE 
     sleef::sleef
-    OpenMP::OpenMP_CXX 
-    Threads::Threads 
-    Gen
 )
 
-set_target_properties(rialto PROPERTIES
+set_target_properties(Gen PROPERTIES
     POSITION_INDEPENDENT_CODE ON
 )

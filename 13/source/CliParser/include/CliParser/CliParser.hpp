@@ -14,12 +14,8 @@ public:
 
     struct Options {
         std::string output_file = "";
-        size_t iterations_cnt = 1000000;
-        double start_cost = 100;
-        double rate = 0.05;
-        double volatility = 0.1;
-        double strike = 100;
-        double period = 1;
+        size_t iterations_cnt = 100000;
+        size_t options_cnt = 112;
         uint64_t seed = std::random_device{}();
         bool help_requested = false;
     };
