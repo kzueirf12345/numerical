@@ -31,48 +31,39 @@ int main(int argc, char* argv[]) try {
         output_ptr = &output_file;
     }
 
-    switch (opts.mode) {
-        case CliParser::Mode::BASE: {
-            const rialto::Rialto::Context context{
-                .start_cost = opts.start_cost,
-                .rate = opts.rate,
-                .volatility = opts.volatility,
-                .strike = opts.strike,
-                .period = opts.period,
-            };
+    const rialto::Rialto::Context context{
+        .start_cost = opts.start_cost,
+        .rate = opts.rate,
+        .volatility = opts.volatility,
+        .strike = opts.strike,
+        .period = opts.period,
+    };
 
-            rialto::Rialto rialto(context);
+    rialto::Rialto rialto(std::move(context));
 
-            const double monte_carlo_cost = rialto.MonteCarlo(opts.iterations_cnt, opts.seed);
-            const double analytic_cost = rialto.BlackScholes();
+    const double monte_carlo_cost = rialto.MonteCarlo(opts.iterations_cnt, opts.seed);
+    const double analytic_cost = rialto.BlackScholes();
 
-            const double abs_error = std::abs(monte_carlo_cost - analytic_cost);
-            const double rel_error_pct = (abs_error / analytic_cost * 100.0);
+    const double abs_error = std::abs(monte_carlo_cost - analytic_cost);
+    const double rel_error_pct = (abs_error / analytic_cost * 100.0);
 
-            *output_ptr << std::fixed << std::setprecision(5) <<
-                "===ОТЧЕТ О ТЕСТИРОВАНИИ===\n"
-                "[Параметры рынка и контракта]\n"
-                "  Начальная цена (start_cost)          : " << opts.start_cost << "\n"
-                "  Страйк (strike)                      : " << opts.strike << "\n"
-                "  Безрисковая ставка (rate)            : " << opts.rate << "\n"
-                "  Волатильность (volatility)           : " << opts.volatility << "\n"
-                "  Время (period)                       : " << opts.period << "\n"
-                "\n[Параметры симуляции Монте-Карло]\n"
-                "  Количество итераций (iterations_cnt) : " << opts.iterations_cnt << "\n"
-                "  Сид генератора (seed)                : " << opts.seed << "\n"
-                "\n[Результаты вычислений]\n"
-                "  Monte Carlo Cost                     : " << monte_carlo_cost << "\n"
-                "  Analytic Cost                        : " << analytic_cost << "\n"
-                "  Абсолютная разница                   : " << abs_error << "\n"
-                "  Относительная погрешность            : " << rel_error_pct << "%\n"
-                << std::endl;
-        } break;
-
-        default: {
-            std::cerr << "Unhandled mode!" << std::endl;
-            return EXIT_FAILURE;
-        }
-    }
+    *output_ptr << std::fixed << std::setprecision(5) <<
+        "===ОТЧЁТ===\n"
+        "[Параметры рынка и контракта]\n"
+        "  Начальная цена (start_cost)          : " << opts.start_cost << "\n"
+        "  Страйк (strike)                      : " << opts.strike << "\n"
+        "  Безрисковая ставка (rate)            : " << opts.rate << "\n"
+        "  Волатильность (volatility)           : " << opts.volatility << "\n"
+        "  Время (period)                       : " << opts.period << "\n"
+        "\n[Параметры симуляции Монте-Карло]\n"
+        "  Количество итераций (iterations_cnt) : " << opts.iterations_cnt << "\n"
+        "  Сид генератора (seed)                : " << opts.seed << "\n"
+        "\n[Результаты вычислений]\n"
+        "  Monte-Carlo cost                     : " << monte_carlo_cost << "\n"
+        "  Analytic cost                        : " << analytic_cost << "\n"
+        "  Абсолютная разница                   : " << abs_error << "\n"
+        "  Относительная погрешность            : " << rel_error_pct << "%\n"
+    << std::endl;
 
     return EXIT_SUCCESS;
 }
