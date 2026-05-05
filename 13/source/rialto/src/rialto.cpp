@@ -10,6 +10,8 @@ T NormalCDF(T z) {
 }
 
 double Rialto::BlackScholes() const {
+    const double volatility_mul_sqrt_period_ = context_.volatility * std::sqrt(context_.period);
+    
     const double y1 = (std::log(context_.start_cost / context_.strike) 
                      + (context_.rate + 0.5 * context_.volatility * context_.volatility) * context_.period) 
                      / volatility_mul_sqrt_period_;
@@ -40,7 +42,7 @@ double Rialto::MonteCarlo(const size_t iterations_cnt, const uint64_t seed) {
 }
 
 double Rialto::calcStocksCost() {
-    return start_cost_exp_rate_volatility2_div_2_period_ * std::exp(volatility_mul_sqrt_period_ * dist_(gen_));
+    return dist_(gen_);
 }
 
 } //namespace rialto

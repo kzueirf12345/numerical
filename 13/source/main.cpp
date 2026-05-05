@@ -2,6 +2,7 @@
 #include <cstdlib>
 #include <fstream>
 #include <iomanip>
+#include <ios>
 #include <sleef.h>
 #include <stdexcept>
 #include <mpfr.h>
