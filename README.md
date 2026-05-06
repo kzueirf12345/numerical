@@ -537,3 +537,34 @@ libm_div_sleef:    5.63406 +/- 0.00815648
 
 Улучшение производительно libm обучлавливается автоматической векоризацией цикла компилятором. Но при этом sleef показывает себя сильно лучше. Конкретно тестировалась функция ```Sleef_logf16_u10avx512f```
 
+## 13
+
+Тестирование Монте-Карло расчёта цены call Европейского опциона. Результаты лежат в папке 13.
+
+### Зависимости
+
+| Зависимость           | Минимальная версия    | Назначение                                    |
+|-----------------------|-----------------------|-----------------------------------------------|
+| **g++**               | 11.4                  | Компиляция C++20 кода                         |
+| **cmake**             | 3.21                  | Сборка проекта                                |
+
+### Использование
+
+#### CMake
+
+```bash
+$ cmake -B build -DCMAKE_BUILD_TYPE=RelWithDebInfo
+$ cmake --build build -j$(nproc)
+$ ./build/call_option --help
+Usage: ./build/call_option [OPTIONS]
+Options:
+  -o, --output <FILE>        Specify output file (default: stdout)
+  -c, --start-cost <VALUE>   Specify start cost (default: 100)
+  -r, --rate <VALUE>         Specify rate (default: 0.05)
+  -v, --volatility <VALUE>   Specify volatility (default: 0.1)
+  -t, --strike <VALUE>       Specify strike (default: 100)
+  -p, --period <VALUE>       Specify period (default: 1)
+  -n, --iterations <VALUE>   Specify iterations count (default: 1000000)
+  -s, --seed <VALUE>         Specify seed for random (default: random)
+  -h, --help                 Show this help message
+```
