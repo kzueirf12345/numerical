@@ -550,8 +550,6 @@ libm_div_sleef:    5.63406 +/- 0.00815648
 
 ### Использование
 
-#### CMake
-
 ```bash
 $ cmake -B build -DCMAKE_BUILD_TYPE=RelWithDebInfo
 $ cmake --build build -j$(nproc)
@@ -565,6 +563,34 @@ Options:
   -t, --strike <VALUE>       Specify strike (default: 100)
   -p, --period <VALUE>       Specify period (default: 1)
   -n, --iterations <VALUE>   Specify iterations count (default: 1000000)
+  -s, --seed <VALUE>         Specify seed for random (default: random)
+  -h, --help                 Show this help message
+```
+
+## 14
+
+Тестирование Монте-Карло расчёта цены нескольких call Европейских опционов. Результаты лежат в папке 14.
+
+### Зависимости
+
+| Зависимость           | Минимальная версия    | Назначение                                    |
+|-----------------------|-----------------------|-----------------------------------------------|
+| **g++**               | 11.4                  | Компиляция C++20 кода                         |
+| **cmake**             | 3.21                  | Сборка проекта                                |
+| **OpenMP**            | 4.5                   | Распараллеливание                             |
+| **Sleef**             | 4                     | Векторные математические инструкции           |
+
+### Использование
+
+```bash
+$ cmake -B build -DCMAKE_BUILD_TYPE=RelWithDebInfo
+$ cmake --build build -j$(nproc)
+$ ./build/call_option --help
+Usage: ./build/call_option [OPTIONS]
+Options:
+  -o, --output <FILE>        Specify output file (default: stdout)
+  -p, --options <VALUE>      Specify options count (default: 100)
+  -n, --iterations <VALUE>   Specify iterations count (default: 100000)
   -s, --seed <VALUE>         Specify seed for random (default: random)
   -h, --help                 Show this help message
 ```
