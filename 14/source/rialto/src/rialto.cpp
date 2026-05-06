@@ -32,7 +32,6 @@ std::vector<float> Pricer::BlackScholes(const BatchContext& ctx) {
     const __m512 v_one  = _mm512_set1_ps(1.0f);
     const __m512 v_inv_sqrt2 = _mm512_set1_ps(0.70710678118654752440f); 
 
-    #pragma omp parallel for schedule(static)
     for (size_t chunk = 0; chunk < num_chunks; ++chunk) {
         size_t i = chunk * vec_size;
 
